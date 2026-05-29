@@ -1,0 +1,8 @@
+{
+  "_comment": "複製本檔為 notion.config.local.json 並填入真實值；local 檔已被 .gitignore 封鎖，絕不入版控。",
+  "notion_token": "secret_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "databases": {
+    "dev_goals": "REPLACE_WITH_NOTION_DATABASE_ID",
+    "dev_stage_log": "REPLACE_WITH_NOTION_DATABASE_ID"
+  }
+}

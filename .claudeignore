@@ -1,0 +1,5 @@
+# 敏感資料專區：AI / 自動化代理永不讀取、永不處理
+05_Secrets/
+
+# 本地真實設定（含 Notion token / database_id）
+notion.config.local.json

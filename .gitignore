@@ -1,0 +1,17 @@
+# === 敏感資料：永不上版控（用 /* 才能讓下方 ! 例外生效） ===
+05_Secrets/*
+!05_Secrets/.gitkeep
+!05_Secrets/secrets.env.example
+
+# === 本地設定與狀態 ===
+notion.config.local.json
+.runtime/
+
+# === 投影輸出：可重建，不入版控（保留 .gitkeep） ===
+06_Exports/*
+!06_Exports/.gitkeep
+
+# === 系統雜項 ===
+.DS_Store
+.obsidian/workspace*.json
+.obsidian/cache

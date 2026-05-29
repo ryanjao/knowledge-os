@@ -1,0 +1,285 @@
+# =============================================================
+# 資料契約 Data Contract — Obsidian (SoT) → Notion (Mirror)
+# 基於規格書 dev-notion-mirror@1.0，套用改進 A–F
+# =============================================================
+version: "dev-notion-mirror@1.1"
+timezone: "Asia/Taipei"
+source_of_truth: "obsidian"
+mirror: "notion"
+
+# -------------------------------------------------------------
+# 0) 工具/設定分離（改進 A、B）
+#    本契約 committed；真實 token 與 database_id 放 notion.config.local.json
+# -------------------------------------------------------------
+notion_config_ref: "notion.config.local.json"   # 改進 B：DB id / token 不寫死於此
+
+# -------------------------------------------------------------
+# 1) Obsidian Front-matter Contract
+# -------------------------------------------------------------
+obsidian:
+  frontmatter:
+    required: [uid, status]
+    fields:
+      uid:
+        type: string
+        description: "全庫唯一且永不改（建議 ULID/UUID）。Notion upsert 的主鍵來源"
+        example: "01HZP3K8M9X2"
+      status:
+        type: enum
+        allowed: [draft, verified, deprecated]
+        description: "生命週期狀態"
+      title:
+        type: string
+        optional: true
+        description: "可選；若缺，腳本會用 H1 或檔名推導"
+      kind:
+        type: enum
+        allowed: [dev_goal, dev_log, note, adr, runbook, snippet, review]
+        optional: true
+        description: "筆記類型。投影到 Notion 的主要過濾條件"
+      project:
+        type: string
+        optional: true
+        description: "專案代號或名稱（可空，不強制）"
+      stage:
+        type: enum
+        allowed: [Idea, Build, Validate, Ship, Maintain]
+        optional: true
+        description: "目標目前所處階段（通常用在 dev_goal）"
+      method:
+        type: list
+        item_type: string
+        optional: true
+        description: "方法論/手段（建議放精簡詞彙）"
+      tags:
+        type: list
+        item_type: string
+        optional: true
+      mirror:
+        type: boolean
+        optional: true
+        # 改進 C：dev_goal 預設 opt-out（見 defaults_by_kind）；其餘預設 false
+        default: false
+        defaults_by_kind:
+          dev_goal: true
+        description: "是否允許投影到 Notion（同步前仍會被敏感掃描二次否決）"
+      source_date:
+        type: string
+        optional: true
+        description: "ISO 日期 YYYY-MM-DD（若缺，腳本可用檔名日期推導）"
+
+# -------------------------------------------------------------
+# 2) 內容抽取規則（Stage Logs）
+# -------------------------------------------------------------
+extraction:
+  stage_log:
+    callout:
+      type: "progress"
+      header_match: "[!progress]"   # 不分大小寫
+      attributes_allowed: [stage, date, goal, seq]
+      canonical:
+        stage:
+          allowed: [Idea, Build, Validate, Ship, Maintain]
+          default_from_parent: "dev_goal.stage"
+        date:
+          format: "YYYY-MM-DD"
+          default: "source_date"
+        goal:
+          description: "對應 dev_goal 的 uid；若缺則視為未關聯日誌"
+        seq:
+          description: "同日多筆序號；若缺，依出現順序自動補 01/02/03"
+      body_fields:
+        preferred_keys: [did, result, next]
+        fallback: "raw_block"
+    output:
+      entity: "dev_log"
+      source_uid_format: "{goal_uid}#{date}#{seq}"
+
+# -------------------------------------------------------------
+# 3) 同步策略（改進 D、E）
+# -------------------------------------------------------------
+sync:
+  order: [dev_goals, dev_stage_log]   # 改進 D：先 Goals 後 Stage Log，確保 relation 可對應
+  fingerprint:
+    algorithm: "sha256(canonical_json(payload))"
+    local_cache: "06_Exports/sync_state.json"  # 改進 E：本地快取，避免每次回讀 Notion
+    notion_property: "內容指紋 Content Fingerprint"  # 同時存 Notion，保留可重建性
+    skip_update_if_equal: true
+  api:
+    rate_limit_policy: "best_effort"
+    retry:
+      max_attempts: 3
+      backoff_seconds: [1, 3, 8]
+
+# -------------------------------------------------------------
+# 4) Notion Database Contract（中文為主）
+# -------------------------------------------------------------
+notion:
+  databases:
+    # ============================
+    # DB-1：開發目標 Dev Goals
+    # ============================
+    dev_goals:
+      database_id_ref: "databases.dev_goals"   # 改進 B：值取自 notion.config.local.json
+      database_name: "開發目標 Dev Goals"
+      idempotency:
+        unique_key_property: "來源UID Source UID"
+        unique_key_value: "{obsidian.uid}"
+      properties:
+        "目標 Goal": { type: title }
+        "專案 Project": { type: select }
+        "階段 Stage": { type: select, options: [Idea, Build, Validate, Ship, Maintain] }
+        "方法 Method": { type: multi_select }
+        "完成定義 DoD": { type: rich_text }
+        "狀態 Status": { type: select, options: [Active, Paused, Done, Dropped] }
+        "最後更新 Last Updated": { type: date }
+        "來源UID Source UID": { type: rich_text }
+        "來源路徑 Source Path": { type: rich_text }
+        "內容指紋 Content Fingerprint": { type: rich_text }
+        "契約版本 Schema Version": { type: rich_text }
+      mapping:
+        source_filter:
+          where_all:
+            - { field: "frontmatter.kind", equals: "dev_goal" }
+            - { field: "frontmatter.status", in: ["verified", "draft"] }
+            - { field: "frontmatter.mirror", equals: true }
+        fields:
+          "目標 Goal":
+            from: "derived.title"
+            derive: { priority: ["frontmatter.title", "content.h1", "filename.title_guess"] }
+          "專案 Project": { from: "frontmatter.project", default: "General" }
+          "階段 Stage": { from: "frontmatter.stage", default: "Build" }
+          "方法 Method": { from: "frontmatter.method", default: [] }
+          "完成定義 DoD":
+            from_any:
+              - "content.section('DoD')"
+              - "content.section('完成定義')"
+              - "content.section('Definition of Done')"
+          "狀態 Status":
+            from: "derived.goal_status"
+            derive:
+              map: { draft: "Active", verified: "Active", deprecated: "Dropped" }
+          "最後更新 Last Updated": { from: "derived.last_modified_date" }
+          "來源UID Source UID": { from: "frontmatter.uid" }
+          "來源路徑 Source Path": { from: "derived.relative_path" }
+          "內容指紋 Content Fingerprint": { from: "derived.fingerprint" }
+          "契約版本 Schema Version": { const: "dev-goal@1" }
+
+    # ============================
+    # DB-2：階段記錄 Dev Stage Log
+    # ============================
+    dev_stage_log:
+      database_id_ref: "databases.dev_stage_log"
+      database_name: "階段記錄 Dev Stage Log"
+      idempotency:
+        unique_key_property: "來源UID Source UID"
+        unique_key_value: "{computed.log_source_uid}"   # goal_uid#date#seq
+      properties:
+        "日期 Date": { type: date }
+        "階段 Stage": { type: select, options: [Idea, Build, Validate, Ship, Maintain] }
+        "做了什麼 What I Did": { type: rich_text }
+        "結果 Result": { type: rich_text }
+        "下一步 Next": { type: rich_text }
+        "關聯目標 Goal": { type: relation, relation_to_database: "dev_goals" }
+        "來源UID Source UID": { type: rich_text }
+        "來源路徑 Source Path": { type: rich_text }
+        "內容指紋 Content Fingerprint": { type: rich_text }
+        "契約版本 Schema Version": { type: rich_text }
+      mapping:
+        source_filter:
+          where_any:
+            - { field: "frontmatter.kind", equals: "dev_log" }
+            - { field: "content.contains_callout('progress')", equals: true }
+        extraction:
+          from_callouts:
+            callout_type: "progress"
+            emit_entity_per_callout: true
+            computed:
+              goal_uid: { from: "callout.attr.goal", fallback: "frontmatter.uid_if_kind_dev_goal" }
+              date: { from: "callout.attr.date", fallback: "derived.note_date" }
+              seq: { from: "callout.attr.seq", fallback: "derived.callout_index_2digits" }
+              log_source_uid: { format: "{goal_uid}#{date}#{seq}" }
+        fields:
+          "日期 Date": { from: "computed.date" }
+          "階段 Stage": { from: "callout.attr.stage", fallback: "frontmatter.stage", default: "Build" }
+          "做了什麼 What I Did":
+            from_any: ["callout.kv.did", "callout.paragraphs", "callout.raw_block"]
+          "結果 Result":
+            from_any: ["callout.kv.result", "callout.section('result')", "derived.empty"]
+          "下一步 Next":
+            from_any: ["callout.kv.next", "callout.section('next')", "derived.empty"]
+          "關聯目標 Goal":
+            relation:
+              to_database: "dev_goals"
+              match_on:
+                notion_property: "來源UID Source UID"
+                value: "{computed.goal_uid}"
+          "來源UID Source UID": { from: "computed.log_source_uid" }
+          "來源路徑 Source Path": { from: "derived.relative_path" }
+          "內容指紋 Content Fingerprint": { from: "derived.fingerprint" }
+          "契約版本 Schema Version": { const: "dev-log@1" }
+
+# -------------------------------------------------------------
+# 5) Canonicalization（fingerprint 穩定化）
+# -------------------------------------------------------------
+canonicalization:
+  canonical_json:
+    sort_object_keys: true
+    normalize_whitespace: true
+    newline: "\n"
+    strip_trailing_spaces: true
+    omit_null_fields: true
+  list_ordering:
+    sort_lists_for: ["方法 Method", "tags"]
+    preserve_order_for: ["階段記錄"]   # 日誌序列要保留順序
+
+# -------------------------------------------------------------
+# 6) 敏感掃描（Fail Fast, Zero Leak）— 改進 F
+# -------------------------------------------------------------
+sensitive_scan:
+  # 掃描前先把 token 取代為空字串，避免誤判
+  token_whitelist: '\{\{SECRET_[A-Z0-9_]+\}\}'
+  policy:
+    hard_block: "命中即整批同步失敗（fail fast），報告只記檔案與規則 ID，不輸出內容"
+    soft_warn: "命中則自動把該筆記 mirror:false（不投影，不影響 SoT）"
+  hard_block:
+    - id: "pem_private_key"
+      pattern: '-----BEGIN (?:RSA|DSA|EC|OPENSSH|PRIVATE KEY|CERTIFICATE)-----[\s\S]+?-----END (?:RSA|DSA|EC|OPENSSH|PRIVATE KEY|CERTIFICATE)-----'
+    - id: "jwt"
+      pattern: 'eyJ[a-zA-Z0-9_-]{5,}\.[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_-]{10,}'
+    - id: "aws_access_key"
+      pattern: 'AKIA[0-9A-Z]{16}'
+    - id: "github_token"
+      pattern: 'ghp_[A-Za-z0-9]{36,}'
+    - id: "slack_token"
+      pattern: 'xox[baprs]-[A-Za-z0-9-]{10,}'
+    - id: "stripe_live_key"
+      pattern: 'sk_live_[A-Za-z0-9]{10,}'
+    - id: "plaintext_password_assign"
+      pattern: '(?i)\b(password|passwd|pwd|secret|api[_-]?key|access[_-]?key)\b\s*[:=]\s*[''"]?[^''"\s]{6,}[''"]?'
+    - id: "private_ipv4"   # 改進 F：內網 IPv4 由 soft_warn 升級為 hard_block
+      pattern: '\b(?:10\.(?:\d{1,3}\.){2}\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})\b'
+  soft_warn:
+    - id: "public_ipv4"
+      pattern: '\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b'
+    - id: "ipv6"
+      pattern: '\b(?:[A-Fa-f0-9]{1,4}:){2,7}[A-Fa-f0-9]{1,4}\b'
+    - id: "email"
+      pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    - id: "tw_national_id"
+      pattern: '\b[A-Z][12]\d{8}\b'
+    - id: "tw_phone"
+      pattern: '\b(?:\+?886[-\s]?)?0?9\d{2}[-\s]?\d{3}[-\s]?\d{3}\b'
+
+# -------------------------------------------------------------
+# 7) 同步前驗證
+# -------------------------------------------------------------
+validation:
+  require_uid_unique: true
+  notion_required_properties:
+    dev_goals: ["目標 Goal", "來源UID Source UID", "契約版本 Schema Version"]
+    dev_stage_log: ["日期 Date", "階段 Stage", "來源UID Source UID", "契約版本 Schema Version"]
+  soft_defaults:
+    project_if_empty: "General"
+  sync_guardrails:
+    require_mirror_flag: true
