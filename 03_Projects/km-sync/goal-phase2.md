@@ -22,3 +22,8 @@ source_date: 2026-05-29
 > did: 完成 Phase 2a 純引擎（sanitize/fingerprint/callouts/projection/engine/cli）
 > result: 全部單元測試通過
 > next: Phase 2b 接 Notion 推送
+
+> [!progress] stage=Build date=2026-05-29
+> did: docs: 說明 sync 的自動記進度與 --no-autolog
+> result:
+> next:
