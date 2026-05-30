@@ -5,6 +5,8 @@ kind: dev_goal
 project: km-sync
 stage: Build
 method: [TDD, Python]
+phase_done: 1
+phase_total: 2
 mirror: true
 source_date: 2026-05-29
 ---

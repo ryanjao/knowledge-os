@@ -6,6 +6,8 @@ project: investment-research-os
 stage: Validate
 method: [Python, yfinance, FMP, SQLite, Jinja2]
 tags: [finance, research, capital-cycle]
+phase_done: 1
+phase_total: 2
 mirror: true
 source_date: 2026-05-29
 ---

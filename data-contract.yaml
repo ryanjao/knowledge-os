@@ -55,6 +55,14 @@ obsidian:
         type: list
         item_type: string
         optional: true
+      phase_done:
+        type: number
+        optional: true
+        description: "已完成的 phase 數（用於進度推導；通常用在 dev_goal）"
+      phase_total:
+        type: number
+        optional: true
+        description: "規劃的 phase 總數（用於進度推導；通常用在 dev_goal）"
       mirror:
         type: boolean
         optional: true
@@ -132,6 +140,12 @@ notion:
         "方法 Method": { type: multi_select }
         "完成定義 DoD": { type: rich_text }
         "狀態 Status": { type: select, options: [Active, Paused, Done, Dropped] }
+        "已完成階段 Phase Done": { type: number }
+        "規劃階段 Phase Total": { type: number }
+        # 進度 / 進度條為 Notion 端 formula，依「Stage 區間 × Phase 內插」推導，
+        # 不由 km-sync 投影。推導規則見 docs/superpowers/specs/2026-05-30-project-dashboard-design.md
+        "進度 Progress": { type: formula, derived: true }
+        "進度條 Progress Bar": { type: formula, derived: true }
         "最後更新 Last Updated": { type: date }
         "來源UID Source UID": { type: rich_text }
         "來源路徑 Source Path": { type: rich_text }
@@ -155,6 +169,12 @@ notion:
               - "content.section('DoD')"
               - "content.section('完成定義')"
               - "content.section('Definition of Done')"
+          "已完成階段 Phase Done": { from: "frontmatter.phase_done" }
+          "規劃階段 Phase Total": { from: "frontmatter.phase_total" }
+          # 進度推導規則（Stage 區間 low/high）：
+          #   Idea 0–15 / Build 15–50 / Validate 50–80 / Ship 80–95 / Maintain 95–100
+          #   progress = low + (phase_done / phase_total) * (high - low)
+          #   Status=Done→100；Status=Dropped→0；phase_total=0→只取 low
           "狀態 Status":
             from: "derived.goal_status"
             derive:

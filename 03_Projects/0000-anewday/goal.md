@@ -6,6 +6,8 @@ project: 0000-anewday
 stage: Ship
 method: [Next.js, Supabase, Tailwind, Vercel]
 tags: [web, ecommerce, fragrance]
+phase_done: 3
+phase_total: 3
 mirror: true
 source_date: 2026-05-24
 ---
