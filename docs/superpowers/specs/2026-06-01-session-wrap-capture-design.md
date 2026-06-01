@@ -2,7 +2,7 @@
 
 - 日期：2026-06-01
 - 載體：Claude Code Stop hook（全域）+ Obsidian Vault（SoT）
-- 狀態：方向已核准（使用者：「整體 OK」）；**兩個子決策待定**（見 §9），回來後定調即可轉寫實作計畫
+- 狀態：**設計已核准、§9 兩個子決策已定**，可轉寫實作計畫
 - 服務需求：需求 1（做法知識層：階段→skill + 錯誤→教訓）、需求 3（每次結束保證記錄進度）
 
 ## 1. 目的與核心洞察
@@ -21,7 +21,7 @@
 - 候選草稿產生（progress + lessons）寫入暫存區。
 - 新增 `[!lesson]` callout 慣例。
 - 由下而上的 playbook（Dataview 查詢）。
-- 核准 / promotion 流程（輕量）。
+- 核准 / promotion 流程：`/km-review` 指令（決策二定案）。
 - 更新 `_docs/spec.md`、`_docs/callouts.md`、`data-contract.yaml`、Notion Mirror。
 
 ### 2.2 這次不做（backlog，已歸位，不在本 spec）
@@ -35,7 +35,7 @@
 2. hook 檢查 cwd 是否有 **`.km-project`**（內容 = 專案 slug，如 `investment-research-os`）。
    - 無 → **no-op 放行**（不打擾其他 repo）。
    - 有 → 進入步驟 3。
-3. hook 回傳 `block` + 指示，讓**仍在執行的 Claude 用自身完整 context** 產出候選草稿（推薦做法，見 §9 決策一）。
+3. hook 回傳 `block` + 指示，讓**仍在執行的 Claude 用自身完整 context** 產出候選草稿（決策一定案：Claude 自寫，非腳本機械萃取）。
    - **防迴圈**：候選寫完後放 sentinel（或檢查候選檔已存在）；第二次 Stop 即放行，避免 block 無限循環。
 4. 候選寫入暫存區：`01_Inbox/_candidates/YYYY-MM-DD--<project>--<session>.md`。
    - **不直接寫目標卡**（目標卡是 SoT，受 §8.1 人工核准閘約束）。
@@ -70,10 +70,11 @@
 
 ## 6. 核准 / promotion 流程
 - 下次 session 開場或週末，檢視 `01_Inbox/_candidates/`。
-- 輕量 `/km-review`（見 §9 決策二）或純手動貼上：
-  - **approve** → `[!progress]` 併入該目標卡 Stage Log；`[!lesson]` 併入 lessons 集合。
-  - **reject** → 刪除候選。
-- 守住規格 §8.1「提議 → 預覽 → Y → 寫入」。
+- **`/km-review` 指令**（決策二定案，本次實作）：
+  - 列出 `01_Inbox/_candidates/` 待審候選。
+  - 逐筆預覽 → **approve** → `[!progress]` 併入該專案目標卡 Stage Log、`[!lesson]` 併入 lessons 集合，並刪除候選檔。
+  - **reject** → 刪除候選檔。
+- 守住規格 §8.1「提議 → 預覽 → Y → 寫入」：`/km-review` 即「預覽 + 核准」那一關，由人類發動。
 
 ## 7. 對既有檔案的變更
 - `_docs/spec.md`（+ Notion Mirror）：§3.1 callout 字典加 `[!lesson]`；§6 加「session 收尾候選」流程；§8.1 註明 auto-candidate 是合規的「提議」（非繞過寫入閘）。
@@ -86,18 +87,12 @@
 - **沿用既有抽取哲學**：`[!lesson]` 比照 `[!progress]`，機器可解析、可投影、可重建。
 - **零摩擦**：Stop hook 自動觸發，達成需求 3 的「保證每次都記」，又不靠紀律。
 
-## 9. 待定子決策（回來後定調，其餘已核准）
-**決策一 — §3 收尾的產出做法**：
-- (A) 讓**仍在跑的 Claude** 自己寫候選（推薦）：零額外 LLM 成本、品質高、不怕 transcript 格式變。
-- (B) 純腳本 `jq/grep` 機械萃取：只列 skill / 失敗測試，prose 要人補；較省但較笨。
-
-**決策二 — §6 promotion**：
-- (A) 這次一併做 `/km-review` 指令。
-- (B) 先純手動貼，指令列 backlog。
+## 9. 子決策（已定案）
+**決策一 — §3 收尾的產出做法**：✅ **(A) 讓仍在跑的 Claude 自己寫候選**。零額外 LLM 成本、品質高、不怕 transcript 格式變；依賴 Stop hook 能 block 並防迴圈。
+**決策二 — §6 promotion**：✅ **(A) 本次一併做 `/km-review` 指令**（讀候選 → 預覽 → approve 併入 SoT / reject 刪除）。
 
 ## 10. 下一步
-1. 回來定調 §9 兩個決策。
-2. 轉 `writing-plans` skill 寫實作計畫（brainstorming 的終點）。
-3. 依計畫實作：Stop hook 腳本 → `.km-project` 約定 → 候選模板 → `[!lesson]` 慣例 → spec/契約/Mirror 更新 → playbook Dataview。
+1. 啟用 `writing-plans` skill 寫實作計畫（brainstorming 的終點）。
+2. 依計畫實作：Stop hook 腳本 → `.km-project` 約定 → 候選模板 → `[!lesson]` 慣例 → `/km-review` 指令 → spec/契約/Mirror 更新 → playbook Dataview。
 </content>
 </invoke>
