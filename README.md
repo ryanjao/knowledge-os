@@ -26,6 +26,7 @@
 4. 設目標：用 `_templates/goal-note.md` 建目標卡（`kind: dev_goal`，預設會投影到 Notion）。
 
 ## 文件
+- 規格書（系統設計正本）：[_docs/spec.md](_docs/spec.md)
 - 撰寫慣例：[_docs/conventions.md](_docs/conventions.md)
 - Callout 字典：[_docs/callouts.md](_docs/callouts.md)
 - 工作流程：[_docs/workflow.md](_docs/workflow.md)
