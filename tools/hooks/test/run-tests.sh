@@ -33,6 +33,7 @@ assert_eq "無 .km-project exit 0" "0" "$code"
 t3cwd=$(mktmp); echo "investment-research-os" > "$t3cwd/.km-project"
 t3vault=$(mktmp)
 out=$(echo '{"stop_hook_active":false,"cwd":"'"$t3cwd"'","session_id":"ABCDEFGH1234"}' | KM_VAULT="$t3vault" bash "$HOOK")
+code3=$?
 decision=$(printf '%s' "$out" | jq -r '.decision')
 reason=$(printf '%s' "$out" | jq -r '.reason')
 assert_eq "block decision" "block" "$decision"
@@ -40,13 +41,16 @@ assert_contains "reason 帶專案 slug" "investment-research-os" "$reason"
 assert_contains "reason 帶候選路徑" "01_Inbox/_candidates/" "$reason"
 assert_contains "reason 帶 session 前綴" "ABCDEFGH" "$reason"
 assert_contains "reason 要求只寫候選不動 SoT" "不要" "$reason"
+assert_eq "block exit 0" "0" "$code3"
 
 # --- Test 4: 候選已存在 → 不重複 block ---
 date_today=$(date +%F)
 mkdir -p "$t3vault/01_Inbox/_candidates"
 touch "$t3vault/01_Inbox/_candidates/${date_today}--investment-research-os--ABCDEFGH.md"
 out2=$(echo '{"stop_hook_active":false,"cwd":"'"$t3cwd"'","session_id":"ABCDEFGH1234"}' | KM_VAULT="$t3vault" bash "$HOOK")
+code4=$?
 assert_eq "候選已存在則不 block（空輸出）" "" "$out2"
+assert_eq "候選已存在 exit 0" "0" "$code4"
 
 echo "---"; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
