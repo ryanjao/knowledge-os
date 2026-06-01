@@ -16,3 +16,4 @@ mirror: false
 
 ## 索引
 <!-- /km-review 由此行下方往下 append 一行索引 -->
+- 2026-06-01 — stage=Build skill=test-driven-development error=macos-bash3.2-multibyte — bash 腳本中變數後接中文/全形標點，一律用 ${var} 大括號
