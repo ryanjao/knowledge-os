@@ -102,6 +102,17 @@ extraction:
     output:
       entity: "dev_log"
       source_uid_format: "{goal_uid}#{date}#{seq}"
+  lesson:
+    callout:
+      type: "lesson"
+      header_match: "[!lesson]"   # 不分大小寫
+      attributes_allowed: [skill, stage, error]
+      body_fields:
+        preferred_keys: [what, fix, rule]
+        fallback: "raw_block"
+    output:
+      entity: "dev_lesson"
+      note: "Phase 2b+ 才投影到 Notion；目前僅本地存於 02_Notes/lessons.md"
 
 # -------------------------------------------------------------
 # 3) 同步策略（改進 D、E）

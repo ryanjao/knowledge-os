@@ -103,6 +103,7 @@ Vault 核心資料夾（語義固定）：
 | `[!decision]` | 決策（會導向 ADR 或專案筆記） |
 | `[!risk]` | 風險/雷區（含避免路徑） |
 | `[!progress]` | **階段日誌**：會被 km-sync 抽取成 Dev Stage Log（見 §6.3） |
+| `[!lesson]` | **錯誤→教訓**：Session 收尾捕捉，`/km-review` 核准後存入 `02_Notes/lessons.md`（見 6.6） |
 
 > 類型越少越好；多了只會變成新的分類地獄。
 
@@ -247,6 +248,12 @@ progress = low(stage) + (phase_done / phase_total) * width(stage)
 2. **No-op 避免**：`Content Fingerprint` 相同就不更新。
 3. **Zero Leak**：hard_block 命中則同步必須失敗（或該筆記被排除）。
 4. **可重建**：刪掉 Notion DB 後，從 `06_Exports/sync_state.json` 與 Vault 可完整重建。
+
+### 6.6 Session 收尾自動捕捉（Session Wrap Capture）
+- 全域 Claude Code Stop hook：cwd 有 `.km-project`（內容＝專案 slug）時，讓 Claude 用自身 context 寫候選草稿到 `01_Inbox/_candidates/`（非 SoT，gitignore）。`stop_hook_active` 防迴圈。
+- 候選含 `[!progress]`（did/result/next，需求 3）與 `[!lesson]`（skill/stage/error → what/fix/rule，需求 1）。
+- `/km-review` 做 promotion：`[!progress]`→目標卡 Stage Log、`[!lesson]`→`02_Notes/lessons.md`，並追加一行到 `04_MOCs/playbook.md` 索引（append-only；採索引而非 Dataview，因 Dataview 無法解析 callout 標頭屬性）。守 §8.1 人工核准閘。
+- 設計與計畫：`docs/superpowers/specs/2026-06-01-session-wrap-capture-design.md`、`docs/superpowers/plans/2026-06-01-session-wrap-capture.md`。
 
 ---
 
