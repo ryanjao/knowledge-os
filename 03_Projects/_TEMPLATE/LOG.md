@@ -1,3 +1,9 @@
+---
+uid:
+status: verified
+kind: note
+---
+
 # 事件日誌 LOG（append-only）
 
 > 動態狀態用「追加事件」而非「覆寫文字」，避免 merge conflict 與過期狀態誤導。

@@ -25,7 +25,7 @@ source_date: 2026-05-29
 > result: 全部單元測試通過
 > next: Phase 2b 接 Notion 推送
 
-> [!progress] stage=Build date=2026-05-29
+> [!progress] stage=Build date=2026-05-29 goal=01HZP3K8M9X2KMSYNC seq=02
 > did: docs: 說明 sync 的自動記進度與 --no-autolog
 > result:
 > next:
