@@ -1,0 +1,18 @@
+---
+uid: 01KSESSIONWRAPPLAYBOOK001
+status: verified
+kind: note
+title: "做法 Playbook（階段 × skill × 錯誤，append-only 索引）"
+mirror: false
+---
+
+# 做法 Playbook
+
+> 由下而上長出來：每次 `/km-review` 核准一筆教訓，就追加一行索引（append-only）。
+> 用 Obsidian 搜尋 `stage=Build` 或 `skill=` 即可拉出某階段/某 skill 的歷史教訓。
+> （備註：採 append-only 索引而非 Dataview，因 Dataview 無法解析 callout 標頭屬性。）
+
+格式：`- {date} — stage={stage} skill={skill} error={error} — {rule}`
+
+## 索引
+<!-- /km-review 由此行下方往下 append 一行索引 -->
