@@ -15,3 +15,7 @@ notion.config.local.json
 .DS_Store
 .obsidian/workspace*.json
 .obsidian/cache
+
+# Session Wrap 候選草稿（暫存、可丟、核准後刪除；不進版控）
+01_Inbox/_candidates/*
+!01_Inbox/_candidates/.gitkeep
