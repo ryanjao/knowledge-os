@@ -118,5 +118,38 @@ class CalloutIntegrityTest(unittest.TestCase):
             self.assertIn("ERR_CALLOUT_BROKEN", ids)
 
 
+def make_goal_card(vault, slug, uid):
+    """在 temp vault 建一張 dev_goal 目標卡。"""
+    pdir = os.path.join(vault, "03_Projects", slug)
+    os.makedirs(pdir, exist_ok=True)
+    with open(os.path.join(pdir, "goal.md"), "w", encoding="utf-8") as f:
+        f.write(f"---\nuid: {uid}\nkind: dev_goal\nproject: {slug}\n---\n# Goal\n")
+
+
+class GoalResolutionTest(unittest.TestCase):
+    def test_goal_slug_resolves(self):
+        with tempfile.TemporaryDirectory() as d:
+            make_goal_card(d, "knowledge-os", "01KKMOSSELFGOAL0001")
+            path = write_candidate(d, PROGRESS_FNAME, GOOD_PROGRESS)  # goal=knowledge-os
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertNotIn("ERR_GOAL_UNRESOLVED", ids)
+
+    def test_goal_uid_resolves(self):
+        body = GOOD_PROGRESS.replace("goal=knowledge-os", "goal=01KKMOSSELFGOAL0001")
+        with tempfile.TemporaryDirectory() as d:
+            make_goal_card(d, "knowledge-os", "01KKMOSSELFGOAL0001")
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertNotIn("ERR_GOAL_UNRESOLVED", ids)
+
+    def test_unknown_goal_blocks(self):
+        body = GOOD_PROGRESS.replace("goal=knowledge-os", "goal=does-not-exist")
+        with tempfile.TemporaryDirectory() as d:
+            make_goal_card(d, "knowledge-os", "01KKMOSSELFGOAL0001")
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertIn("ERR_GOAL_UNRESOLVED", ids)
+
+
 if __name__ == "__main__":
     unittest.main()

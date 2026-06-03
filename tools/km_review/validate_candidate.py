@@ -11,6 +11,10 @@ Finding = namedtuple("Finding", ["rule_id", "level", "location", "raw"])
 
 FILENAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}--[a-z0-9-]+--[0-9a-f]{6,}\.md$")
 
+UID_RE = re.compile(r"^uid:\s*(\S+)", re.M)
+KIND_DEVGOAL_RE = re.compile(r"^kind:\s*dev_goal\s*$", re.M)
+HEADER_GOAL_RE = re.compile(r"goal=(\S+)")
+
 CALLOUT_START_RE = re.compile(r"^>\s*\[!(progress|lesson)\]\s*(.*)$")
 HEADER_KV_RE = re.compile(r"(\w+)=")
 BODY_KEY_RE = re.compile(r"^>\s*(\w+)\s*:")
@@ -22,6 +26,31 @@ REQUIRED = {
     "lesson": {"header": ["skill", "stage", "error"],
                "body": ["what", "fix", "rule"]},
 }
+
+
+def _collect_goal_ids(vault_root):
+    """掃 03_Projects/*/ 的 dev_goal 卡，回傳可接受的 goal 值集合（uid + slug）。"""
+    ids = set()
+    if not vault_root:
+        return ids
+    proj = os.path.join(vault_root, "03_Projects")
+    if not os.path.isdir(proj):
+        return ids
+    for slug in os.listdir(proj):
+        sdir = os.path.join(proj, slug)
+        if not os.path.isdir(sdir):
+            continue
+        for fn in os.listdir(sdir):
+            if not fn.endswith(".md"):
+                continue
+            with open(os.path.join(sdir, fn), encoding="utf-8") as f:
+                head = f.read(2000)
+            if KIND_DEVGOAL_RE.search(head):
+                ids.add(slug)
+                m = UID_RE.search(head)
+                if m:
+                    ids.add(m.group(1))
+    return ids
 
 
 def _check_filename(path):
@@ -87,8 +116,15 @@ def validate(path, vault_root=None):
             findings.append(Finding("ERR_CALLOUT_BROKEN", "block", "callout", ""))
         else:
             findings.append(Finding("ERR_NO_CALLOUT", "block", "整份檔", ""))
+    goal_ids = _collect_goal_ids(vault_root)
     counters = {"progress": 0, "lesson": 0}
     for kind, header, body, _start in blocks:
         counters[kind] += 1
         findings += _check_callout_fields(kind, header, body, counters[kind])
+        if kind == "progress":
+            gm = HEADER_GOAL_RE.search(header)
+            if gm and goal_ids and gm.group(1) not in goal_ids:
+                findings.append(Finding(
+                    "ERR_GOAL_UNRESOLVED", "block",
+                    f"[!progress] #{counters['progress']}", gm.group(1)))
     return findings
