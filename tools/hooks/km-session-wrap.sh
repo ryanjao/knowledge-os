@@ -41,5 +41,12 @@ reason="本次開發 session 結束。請執行 Session 收尾捕捉：
    - 每個本次踩到並解掉的錯誤寫一筆 [!lesson] skill=<相關skill> stage=<階段> error=<錯誤類型短標籤>，body：what/fix/rule。
 3. 寫完該檔後即可正常結束（停止）。"
 
+pending=$(ls -1 "$candir"/*.md 2>/dev/null | grep -v '/\.gitkeep$' | wc -l | tr -d ' ')
+if [ "${pending:-0}" -gt 0 ]; then
+  reason="$reason
+
+📋 目前 _candidates/ 有 ${pending} 筆候選待審，記得跑 /km-review 清掉。"
+fi
+
 jq -n --arg r "$reason" '{decision:"block", reason:$r}'
 exit 0

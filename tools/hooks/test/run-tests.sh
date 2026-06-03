@@ -52,5 +52,15 @@ code4=$?
 assert_eq "候選已存在則不 block（空輸出）" "" "$out2"
 assert_eq "候選已存在 exit 0" "0" "$code4"
 
+# --- Test: reason 內含待審候選計數提醒 ---
+tRcwd=$(mktmp); echo "demo" > "$tRcwd/.km-project"
+tRvault=$(mktmp); mkdir -p "$tRvault/01_Inbox/_candidates"
+# 預先放 2 個待審候選（不同於本 session 將建立的那個）
+printf 'x' > "$tRvault/01_Inbox/_candidates/2026-06-01--demo--aaaaaaaa.md"
+printf 'x' > "$tRvault/01_Inbox/_candidates/2026-06-02--demo--bbbbbbbb.md"
+out=$(echo '{"stop_hook_active":false,"cwd":"'"$tRcwd"'","session_id":"zzzzzzzz"}' | KM_VAULT="$tRvault" bash "$HOOK")
+assert_contains "reason 含待審候選提醒" "待審" "$out"
+assert_contains "reason 含 /km-review" "/km-review" "$out"
+
 echo "---"; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
