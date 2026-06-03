@@ -74,6 +74,8 @@ def _parse_callouts(text):
             start = i + 1
             j = i + 1
             while j < len(lines) and lines[j].lstrip().startswith(">"):
+                if CALLOUT_START_RE.match(lines[j]):
+                    break
                 body.append(lines[j])
                 j += 1
             blocks.append((kind, header, body, start))
@@ -123,6 +125,8 @@ def validate(path, vault_root=None):
         findings += _check_callout_fields(kind, header, body, counters[kind])
         if kind == "progress":
             gm = HEADER_GOAL_RE.search(header)
+            # goal_ids 為空（vault 無任何 dev_goal 卡）時刻意跳過 goal 檢查，
+            # 避免在未填充的 vault 上誤報；vault 有卡時才把對不到的 goal 當 block。
             if gm and goal_ids and gm.group(1) not in goal_ids:
                 findings.append(Finding(
                     "ERR_GOAL_UNRESOLVED", "block",

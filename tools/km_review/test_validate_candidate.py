@@ -172,5 +172,33 @@ class RenderTest(unittest.TestCase):
         self.assertIn("通過", report)
 
 
+class AdjacentCalloutTest(unittest.TestCase):
+    def test_two_callouts_without_blank_line_both_parsed(self):
+        # 第二個 callout 缺 seq + 內文不全，必須被偵測（不可被吞）
+        body = (
+            "> [!progress] stage=Build date=2026-06-03 goal=knowledge-os seq=01\n"
+            "> did: a\n> result: b\n> next: c\n"
+            "> [!progress] stage=Build date=2026-06-03 goal=knowledge-os\n"
+            "> did: a\n"
+        )
+        with tempfile.TemporaryDirectory() as d:
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            findings = validate(path, vault_root=d)
+            ids = [f.rule_id for f in findings]
+            # 第二個 progress 缺 seq（header）與 result/next（body）→ 必須出現
+            self.assertIn("ERR_PROGRESS_HEADER", ids)
+            self.assertIn("ERR_PROGRESS_BODY", ids)
+
+
+class EmptyVaultGoalSkipTest(unittest.TestCase):
+    def test_empty_vault_skips_goal_check_intentionally(self):
+        # 刻意行為：vault 無任何 dev_goal 卡時，goal 一律不擋
+        body = GOOD_PROGRESS.replace("goal=knowledge-os", "goal=totally-made-up")
+        with tempfile.TemporaryDirectory() as d:  # 無 03_Projects
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertNotIn("ERR_GOAL_UNRESOLVED", ids)
+
+
 if __name__ == "__main__":
     unittest.main()
