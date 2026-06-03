@@ -76,5 +76,31 @@ class ProgressRuleTest(unittest.TestCase):
             self.assertNotIn("ERR_PROGRESS_BODY", ids)
 
 
+class LessonRuleTest(unittest.TestCase):
+    def test_missing_error_in_header(self):
+        body = (
+            "> [!lesson] skill=tdd stage=Build\n"
+            "> what: x\n> fix: y\n> rule: z\n"
+        )
+        with tempfile.TemporaryDirectory() as d:
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            findings = validate(path, vault_root=d)
+            hdr = [f for f in findings if f.rule_id == "ERR_LESSON_HEADER"]
+            self.assertTrue(hdr)
+            self.assertIn("error", hdr[0].raw)
+
+    def test_missing_fix_in_body(self):
+        body = (
+            "> [!lesson] skill=tdd stage=Build error=oops\n"
+            "> what: x\n> rule: z\n"
+        )
+        with tempfile.TemporaryDirectory() as d:
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            findings = validate(path, vault_root=d)
+            bod = [f for f in findings if f.rule_id == "ERR_LESSON_BODY"]
+            self.assertTrue(bod)
+            self.assertIn("fix", bod[0].raw)
+
+
 if __name__ == "__main__":
     unittest.main()
