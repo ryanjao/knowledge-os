@@ -128,3 +128,80 @@ def validate(path, vault_root=None):
                     "ERR_GOAL_UNRESOLVED", "block",
                     f"[!progress] #{counters['progress']}", gm.group(1)))
     return findings
+
+
+# 規則→白話對照表（UI 與規則解耦：改措辭不動驗證邏輯）
+RULE_MESSAGES = {
+    "ERR_FILENAME": {
+        "症狀": "候選檔名格式不對。",
+        "規定": "須為 YYYY-MM-DD--<slug>--<hash>.md。",
+        "建議": "依規則重新命名候選檔。"},
+    "ERR_PROGRESS_HEADER": {
+        "症狀": "進度區塊標頭缺欄位（{raw}）。",
+        "規定": "[!progress] 標頭須含 stage / date / goal / seq。",
+        "建議": "補上缺少的欄位。"},
+    "ERR_PROGRESS_BODY": {
+        "症狀": "進度區塊內文缺欄位（{raw}）。",
+        "規定": "[!progress] 內文須含 did / result / next 三行。",
+        "建議": "補上缺少的行。"},
+    "ERR_LESSON_HEADER": {
+        "症狀": "教訓區塊標頭缺欄位（{raw}）。",
+        "規定": "[!lesson] 標頭須含 skill / stage / error。",
+        "建議": "補上缺少的欄位。"},
+    "ERR_LESSON_BODY": {
+        "症狀": "教訓區塊內文缺欄位（{raw}）。",
+        "規定": "[!lesson] 內文須含 what / fix / rule 三行。",
+        "建議": "補上缺少的行。"},
+    "ERR_CALLOUT_BROKEN": {
+        "症狀": "callout 框破掉，標頭沒被正確解析。",
+        "規定": "每行須以 '>' 起頭，如 > [!progress] ...。",
+        "建議": "幫每行補上 '>' 前綴。"},
+    "ERR_NO_CALLOUT": {
+        "症狀": "整份候選沒有任何 [!progress] 或 [!lesson]。",
+        "規定": "候選至少要有一個 progress 或 lesson 區塊。",
+        "建議": "退回重寫，補上實際內容。"},
+    "ERR_GOAL_UNRESOLVED": {
+        "症狀": "goal={raw} 對不到任何目標卡。",
+        "規定": "goal= 須為某 dev_goal 卡的 uid，或某 03_Projects/<slug> 專案。",
+        "建議": "改成正確的 uid/slug，或先替該專案建目標卡。"},
+}
+
+
+def render_report(findings, candidate_path):
+    """把 findings 渲染成白話「入庫審查單」（不外露 rule_id）。"""
+    name = os.path.basename(candidate_path)
+    if not findings:
+        return f"📋 入庫審查單：{name}\n檢查結果：✅ 結構通過，可進入人工核准。"
+    lines = [f"📋 入庫審查單：{name}",
+             f"檢查結果：❌ 結構不符（{len(findings)} 項），已攔截。", ""]
+    for i, f in enumerate(findings, 1):
+        msg = RULE_MESSAGES.get(f.rule_id, {
+            "症狀": "未知問題", "規定": "-", "建議": "-"})
+        lines.append(f"項目 {i}（{f.location}）")
+        lines.append("• 症狀：" + msg["症狀"].format(raw=f.raw))
+        lines.append("• 規定：" + msg["規定"].format(raw=f.raw))
+        lines.append("• 建議：" + msg["建議"].format(raw=f.raw))
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+def _default_vault(path):
+    """候選在 <vault>/01_Inbox/_candidates/x.md → 回推 vault root。"""
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+
+
+def main(argv=None):
+    import argparse
+    p = argparse.ArgumentParser(description="驗證 knowledge-os 候選草稿結構")
+    p.add_argument("candidate")
+    p.add_argument("--vault", default=None)
+    args = p.parse_args(argv)
+    vault = args.vault or _default_vault(args.candidate)
+    findings = validate(args.candidate, vault_root=vault)
+    print(render_report(findings, args.candidate))
+    return 1 if any(f.level == "block" for f in findings) else 0
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    _sys.exit(main())

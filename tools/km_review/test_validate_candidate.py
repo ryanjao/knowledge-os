@@ -5,6 +5,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from validate_candidate import validate, Finding  # noqa: E402
+from validate_candidate import render_report, RULE_MESSAGES  # noqa: E402
 
 
 def write_candidate(dirpath, filename, body):
@@ -149,6 +150,26 @@ class GoalResolutionTest(unittest.TestCase):
             path = write_candidate(d, PROGRESS_FNAME, body)
             ids = [f.rule_id for f in validate(path, vault_root=d)]
             self.assertIn("ERR_GOAL_UNRESOLVED", ids)
+
+
+class RenderTest(unittest.TestCase):
+    def test_every_rule_id_has_message(self):
+        used = {"ERR_FILENAME", "ERR_PROGRESS_HEADER", "ERR_PROGRESS_BODY",
+                "ERR_LESSON_HEADER", "ERR_LESSON_BODY", "ERR_CALLOUT_BROKEN",
+                "ERR_NO_CALLOUT", "ERR_GOAL_UNRESOLVED"}
+        self.assertTrue(used.issubset(set(RULE_MESSAGES.keys())))
+
+    def test_report_is_plain_language_not_raw_ruleid(self):
+        f = Finding("ERR_PROGRESS_HEADER", "block", "[!progress] #1", "seq")
+        report = render_report([f], "x.md")
+        self.assertIn("症狀", report)
+        self.assertIn("規定", report)
+        self.assertIn("建議", report)
+        self.assertNotIn("ERR_PROGRESS_HEADER", report)  # 火星文不外露
+
+    def test_clean_report_says_pass(self):
+        report = render_report([], "x.md")
+        self.assertIn("通過", report)
 
 
 if __name__ == "__main__":
