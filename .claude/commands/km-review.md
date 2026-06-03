@@ -11,8 +11,10 @@ description: 審核 Session Wrap 候選草稿，核准後併入 SoT
    b. 問使用者：approve / edit / reject。
    c. **approve：**
       - 對每個 `[!progress]`：找出其 `goal=` 對應的目標卡
-        （`03_Projects/<slug>/` 內 frontmatter `uid` 等於該 goal 值的 dev_goal 檔；
-        若 goal 非 uid 而是專案 slug 或找不到，回報並詢問要併入哪張目標卡）。
+        （依序解析 goal 值：
+         1. 等於某 `03_Projects/<slug>/` 內 dev_goal 檔的 frontmatter `uid` → 用該卡；
+         2. 否則等於某 `03_Projects/<slug>/` 且該目錄含 dev_goal 卡 → 自動用該卡，不再追問；
+         3. 都對不到 → 回報並詢問要併入哪張目標卡）。
         把該 `[!progress]` callout 追加到目標卡的 `## Stage Log` 區段末尾。
       - 對每個 `[!lesson]`：
         - 把該 callout 追加到 `02_Notes/lessons.md` 末尾（append-only）。
