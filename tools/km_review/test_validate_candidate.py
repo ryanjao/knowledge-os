@@ -102,5 +102,21 @@ class LessonRuleTest(unittest.TestCase):
             self.assertIn("fix", bod[0].raw)
 
 
+class CalloutIntegrityTest(unittest.TestCase):
+    def test_no_callout_at_all(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = write_candidate(d, PROGRESS_FNAME, "純文字沒有任何 callout\n")
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertIn("ERR_NO_CALLOUT", ids)
+
+    def test_broken_callout_marker_without_gt(self):
+        # 起始行缺 '>'，無法被解析成 callout
+        body = "[!progress] stage=Build date=2026-06-03 goal=knowledge-os seq=01\n"
+        with tempfile.TemporaryDirectory() as d:
+            path = write_candidate(d, PROGRESS_FNAME, body)
+            ids = [f.rule_id for f in validate(path, vault_root=d)]
+            self.assertIn("ERR_CALLOUT_BROKEN", ids)
+
+
 if __name__ == "__main__":
     unittest.main()

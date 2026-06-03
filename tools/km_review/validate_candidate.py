@@ -14,6 +14,7 @@ FILENAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}--[a-z0-9-]+--[0-9a-f]{6,}\.md$")
 CALLOUT_START_RE = re.compile(r"^>\s*\[!(progress|lesson)\]\s*(.*)$")
 HEADER_KV_RE = re.compile(r"(\w+)=")
 BODY_KEY_RE = re.compile(r"^>\s*(\w+)\s*:")
+BROKEN_MARKER_RE = re.compile(r"^\s*\[!(progress|lesson)\]")
 
 REQUIRED = {
     "progress": {"header": ["stage", "date", "goal", "seq"],
@@ -80,6 +81,12 @@ def validate(path, vault_root=None):
     with open(path, encoding="utf-8") as f:
         text = f.read()
     blocks = _parse_callouts(text)
+    if not blocks:
+        # 有 marker 文字卻沒解析出 callout → 破框；完全沒 marker → 沒內容
+        if any(BROKEN_MARKER_RE.match(ln) for ln in text.splitlines()):
+            findings.append(Finding("ERR_CALLOUT_BROKEN", "block", "callout", ""))
+        else:
+            findings.append(Finding("ERR_NO_CALLOUT", "block", "整份檔", ""))
     counters = {"progress": 0, "lesson": 0}
     for kind, header, body, _start in blocks:
         counters[kind] += 1
