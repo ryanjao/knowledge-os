@@ -19,3 +19,7 @@ notion.config.local.json
 # Session Wrap 候選草稿（暫存、可丟、核准後刪除；不進版控）
 01_Inbox/_candidates/*
 !01_Inbox/_candidates/.gitkeep
+
+# Python 工具產物（tools/km_review 等）
+__pycache__/
+*.pyc
