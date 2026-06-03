@@ -62,5 +62,16 @@ out=$(echo '{"stop_hook_active":false,"cwd":"'"$tRcwd"'","session_id":"zzzzzzzz"
 assert_contains "reason 含待審候選提醒" "待審" "$out"
 assert_contains "reason 含 /km-review" "/km-review" "$out"
 
+PENDING_HOOK="$(cd "$(dirname "$0")/.." && pwd)/km-pending-review.sh"
+# --- Test: 有待審候選 → 輸出提醒 ---
+tPvault=$(mktmp); mkdir -p "$tPvault/01_Inbox/_candidates"
+printf 'x' > "$tPvault/01_Inbox/_candidates/2026-06-01--demo--aaaaaaaa.md"
+out=$(echo '{"cwd":"'"$tPvault"'"}' | KM_VAULT="$tPvault" bash "$PENDING_HOOK")
+assert_contains "開場提醒含待審" "待審" "$out"
+# --- Test: 無待審候選 → 不吵（空輸出）---
+tP0vault=$(mktmp); mkdir -p "$tP0vault/01_Inbox/_candidates"
+out=$(echo '{"cwd":"'"$tP0vault"'"}' | KM_VAULT="$tP0vault" bash "$PENDING_HOOK")
+assert_eq "無待審不輸出" "" "$out"
+
 echo "---"; echo "PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
