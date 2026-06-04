@@ -32,3 +32,8 @@ mirror: false
 > what: skill 假設可用 SendMessage 續派同一 subagent 修小問題，但本環境無此工具
 > fix: 對 4 行測試這種瑣碎 review 修正，改由 controller 直接套用
 > rule: 別假設 SendMessage 存在；瑣碎 review 修正 controller 直接做即可，不必為此另派 subagent
+
+> [!lesson] skill=requesting-code-review stage=Build error=green-tests-false-confidence
+> what: 驗證器 17 測試全綠，但 final review 仍抓到 parser 會把「相鄰、無空行分隔的第二個 callout」整個吞掉、完全不驗——等於死板鐵閘可被排版繞過
+> fix: _parse_callouts body 迴圈遇到 CALLOUT_START_RE 即 break，並補回歸測試；最終 17 測試
+> rule: 測試全綠≠無漏洞；對「宣稱死板的閘」一定要派獨立 review 找邊界繞過，別只信自己寫的測試覆蓋

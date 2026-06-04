@@ -20,3 +20,4 @@ mirror: false
 - 2026-06-01 — stage=Build skill=communication error=language-drift — 固定對齊使用者與 repo 的語言，勿無訊號漂移語言
 - 2026-06-01 — stage=Build skill=writing-plans error=dataview-callout-limitation — 規劃前先確認查詢層能否讀到資料形狀；callout 標頭屬性非 Dataview 可查
 - 2026-06-01 — stage=Build skill=subagent-driven-development error=tool-unavailable — 別假設 SendMessage 存在；瑣碎 review 修正 controller 直接做即可，不必為此另派 subagent
+- 2026-06-03 — stage=Build skill=requesting-code-review error=green-tests-false-confidence — 測試全綠≠無漏洞；對「宣稱死板的閘」一定要派獨立 review 找邊界繞過，別只信自己寫的測試覆蓋
