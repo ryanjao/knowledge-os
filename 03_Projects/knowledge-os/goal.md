@@ -42,3 +42,13 @@ source_date: 2026-06-03
 > did: 研究 knowledge-os 介紹文撰寫方向：對照三個 superpowers skill（subagent-driven-development、brainstorming、TDD）的寫作結構，分析其「痛點先行／流程圖／紅燈清單」模式；並以 README.md 作為素材基礎，提出三種介紹文切入角度。
 > result: 產出三方案比較：A 痛點敘事文（dev.to/X）、B 系統設計概念文（GitHub/HN，Trellis 風）、C 一天流程 walkthrough（高轉換率但需截圖）。建議先做 B 打底 + A 社群傳播，C 留到有 demo 素材。使用者尚未選定方向，文章尚未生成。README 已用方式 B 更新並 commit（d146658）。
 > next: 使用者確認撰寫方式後，生成對應介紹文；優先推薦先寫 B（GitHub 概念文）搭配 A（dev.to 敘事文）。
+
+> [!progress] stage=Build date=2026-06-04 goal=01KKMOSSELFGOAL0001 seq=04
+> did: 跑 /km-review 清空 _candidates/：核准並併入 2026-06-03 Build seq=02（km-review 升級實作）和 2026-06-04 Build seq=03（介紹文研究）兩筆 progress，及 requesting-code-review/green-tests-false-confidence 一筆 lesson。
+> result: _candidates/ 清空；goal.md Stage Log 新增 seq=02/03；lessons.md 新增第 5 筆；playbook.md 新增第 5 行索引。SoT 變更尚未 commit。
+> next: commit 本次 promotion 變更；推 GitHub 後可考慮在社群發布 README 介紹文（dev.to / X）。
+
+> [!progress] stage=Build date=2026-06-04 goal=01KKMOSSELFGOAL0001 seq=01
+> did: 完成 pm-suite 設計 brainstorming session。探索使用者現有 Notion 專案結構（政府 IT 標案：調查局、刑事局、高檢署），設計主框架（側邊欄 + Google Calendar 月視圖 + 告警橫條）、看板（混合式、專案層級顏色標籤、已完成未記錄欄）、AI 文件解析流程（PDF/Word → Claude API 抽取 → Notion 暫存 → 人工確認 → 回寫 SQLite）、Notion 多向同步策略。確定架構：Next.js + SQLite（本機，存 OneDrive/GDrive sync 資料夾）+ Notion REST API + Claude API。設計文件已 commit 至 knowledge-os/docs/superpowers/specs/2026-06-04-pm-suite-design.md（commit bd17c8a）。
+> result: pm-suite 設計 spec 完整，覆蓋 8 大功能區塊、資料模型、多機同步策略、6 個 Phase 概要、開源安裝流程。Supabase MCP 同時完成授權。
+> next: 在 knowledge-os/03_Projects/ 建立 pm-suite 目標卡（goal.md），然後切換 model 開始 Phase 1 實作（Next.js 基礎框架 + SQLite 設定 + 側邊欄 + 首頁行事曆）。

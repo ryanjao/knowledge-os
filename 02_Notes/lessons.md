@@ -37,3 +37,18 @@ mirror: false
 > what: 驗證器 17 測試全綠，但 final review 仍抓到 parser 會把「相鄰、無空行分隔的第二個 callout」整個吞掉、完全不驗——等於死板鐵閘可被排版繞過
 > fix: _parse_callouts body 迴圈遇到 CALLOUT_START_RE 即 break，並補回歸測試；最終 17 測試
 > rule: 測試全綠≠無漏洞；對「宣稱死板的閘」一定要派獨立 review 找邊界繞過，別只信自己寫的測試覆蓋
+
+> [!lesson] skill=mcp stage=Build error=mcp-needs-auth
+> what: Claude Code 啟動時出現「⚠ 1 setup issue: MCP」警告，Supabase MCP server 已安裝但尚未完成 OAuth 授權，導致工具不可用。
+> fix: 呼叫 `mcp__plugin_supabase_supabase__authenticate` 工具，取得 OAuth URL，使用者在瀏覽器完成授權後 MCP server 自動上線，所有 Supabase 工具變為可用。
+> rule: 每次新 session 若看到 MCP setup 警告，優先觸發 authenticate 工具而非嘗試直接呼叫其他工具；/doctor 指令不一定會顯示 Connect 按鈕，需直接呼叫 authenticate。
+
+> [!lesson] skill=system-design stage=Build error=sync-architecture
+> what: 設計 PM 系統與 Notion 的同步時，初步想法是「PM 系統自動推送到 Notion」，但使用者指出中間的溝通是透過 Claude，懷疑無法自動推送。
+> fix: 釐清 Notion REST API 是公開 API：Next.js API route 存 Notion token 後可直接呼叫，不需要 Claude 作為中介。只有「Notion 手動編輯→回寫 PM 系統」這條路需要 Claude 協助，其餘方向可全自動。
+> rule: 設計雙向同步時先區分「哪些方向需要 AI 判斷」vs「哪些是純 API 呼叫」，後者不需要 Claude 介入，應設計為自動化。
+
+> [!lesson] skill=data-modeling stage=Build error=missing-table
+> what: 設計資料模型時，columns 表有 board_id 欄位但忘記定義 boards 表，造成 foreign key 懸空。
+> fix: 自我審查時掃描所有外鍵，補上 boards 表並說明：project_id=null 表示全域看板（跨專案的主看板），有 project_id 表示專案專屬看板。
+> rule: 寫資料模型後做外鍵完整性審查：每個 *_id 欄位都應對應一個已定義的表。
