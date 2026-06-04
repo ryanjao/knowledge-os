@@ -24,3 +24,6 @@ mirror: false
 - 2026-06-04 — stage=Build skill=mcp error=mcp-needs-auth — 看到 MCP setup 警告時優先呼叫 authenticate 工具，勿直接呼叫其他 MCP 工具
 - 2026-06-04 — stage=Build skill=system-design error=sync-architecture — 雙向同步設計先分「需 AI 判斷」vs「純 API 呼叫」，後者設計為自動化不需 Claude 介入
 - 2026-06-04 — stage=Build skill=data-modeling error=missing-table — 資料模型完成後掃描所有外鍵，確認每個 *_id 都對應已定義的表
+- 2026-06-04 — stage=Build skill=architecture error=sqlite-on-cloud-sync — 永不把活的 SQLite/WAL 放雲端區塊級同步資料夾；跨機同步「靜止快照」或用 sync-aware 後端，勿同步活檔
+- 2026-06-04 — stage=Build skill=architecture error=llm-as-data-bus — AI 只當一次性資料提取器（產 draft），不可當資料同步管道；結構化 upsert/diff 一律走確定性程式碼 + 穩定外部 ID
+- 2026-06-04 — stage=Build skill=slash-command error=wrong-skill-invocation — 輸入形似 slash command（km-review/km-sync）先查 .claude/commands/ 有無對應 .md，有則直接讀取執行，勿呼叫 Skill 工具

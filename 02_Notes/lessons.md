@@ -52,3 +52,18 @@ mirror: false
 > what: 設計資料模型時，columns 表有 board_id 欄位但忘記定義 boards 表，造成 foreign key 懸空。
 > fix: 自我審查時掃描所有外鍵，補上 boards 表並說明：project_id=null 表示全域看板（跨專案的主看板），有 project_id 表示專案專屬看板。
 > rule: 寫資料模型後做外鍵完整性審查：每個 *_id 欄位都應對應一個已定義的表。
+
+> [!lesson] skill=architecture stage=Build error=sqlite-on-cloud-sync
+> what: v1 設計把活的 SQLite 單檔放 OneDrive/Google Drive 同步資料夾當多機同步方案；外部審查指出區塊級同步不懂 SQLite 交易/WAL 語意，會偶發靜默損毀並產生 `pm-suite (1).db` 衝突副本。
+> fix: 活的 DB 改存本機 OS app-data（永不同步），WAL 留著（本機安全）；跨機改用 better-sqlite3 online backup 產單檔一致快照寫到備份資料夾（同步靜止快照才安全）；加 lockfile 擋多機/多進程同開。
+> rule: 永遠不要把活的 SQLite/WAL 檔放雲端區塊級同步資料夾；要跨機就同步「靜止快照」或改用 sync-aware 後端（如 Turso），不要同步活檔。
+
+> [!lesson] skill=architecture stage=Build error=llm-as-data-bus
+> what: v1 讓 Claude 讀 Notion 頁面、比對差異後寫入 SQLite，等於把非確定性 LLM 當資料匯流排；結構化欄位（案號/金額/日期）可能因幻覺被錯誤覆寫，且每次同步耗 token、延遲高。
+> fix: Claude 只在「文件→JSON draft」輸入端出現，永不寫 DB；Notion↔SQLite 同步全程式化欄對欄 upsert，以 notion_page_id/block_id 為穩定鍵，用 last_edited_time 做變更偵測（零 token）。
+> rule: AI 只當一次性資料提取器（產 draft），不可當資料同步管道；所有結構化資料的 upsert 與差異比對一律走確定性程式碼 + 穩定外部 ID。
+
+> [!lesson] skill=slash-command stage=Build error=wrong-skill-invocation
+> what: 使用者輸入 "km-review"，Claude 誤呼叫 `init` skill（用於建立 CLAUDE.md），而非執行 `/km-review` slash command，導致短暫跑錯方向。
+> fix: 發現 `/km-review` 是定義在 `.claude/commands/km-review.md` 的 slash command，非 skill；讀取該檔後直接依其步驟執行，不需透過 Skill 工具。
+> rule: 使用者輸入形似 slash command（如 "km-review"、"km-sync"）時，先查 `.claude/commands/` 是否有對應 `.md`；有則直接讀取執行，無須呼叫 Skill 工具。

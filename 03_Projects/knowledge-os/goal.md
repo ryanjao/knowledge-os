@@ -52,3 +52,8 @@ source_date: 2026-06-03
 > did: 完成 pm-suite 設計 brainstorming session。探索使用者現有 Notion 專案結構（政府 IT 標案：調查局、刑事局、高檢署），設計主框架（側邊欄 + Google Calendar 月視圖 + 告警橫條）、看板（混合式、專案層級顏色標籤、已完成未記錄欄）、AI 文件解析流程（PDF/Word → Claude API 抽取 → Notion 暫存 → 人工確認 → 回寫 SQLite）、Notion 多向同步策略。確定架構：Next.js + SQLite（本機，存 OneDrive/GDrive sync 資料夾）+ Notion REST API + Claude API。設計文件已 commit 至 knowledge-os/docs/superpowers/specs/2026-06-04-pm-suite-design.md（commit bd17c8a）。
 > result: pm-suite 設計 spec 完整，覆蓋 8 大功能區塊、資料模型、多機同步策略、6 個 Phase 概要、開源安裝流程。Supabase MCP 同時完成授權。
 > next: 在 knowledge-os/03_Projects/ 建立 pm-suite 目標卡（goal.md），然後切換 model 開始 Phase 1 實作（Next.js 基礎框架 + SQLite 設定 + 側邊欄 + 首頁行事曆）。
+
+> [!progress] stage=Build date=2026-06-04 goal=01KKMOSSELFGOAL0001 seq=05
+> did: 跑 /km-review 清空 _candidates/（2 筆）：候選 1（1090b430，km-review 自身執行記錄 seq=04）與候選 2（b7a92737，pm-suite 設計 session seq=01）均 approve，共併入 2 progress + 3 lesson（mcp-needs-auth、sync-architecture、missing-table），並追加 3 行 playbook 索引。SoT commit 979d54d。
+> result: _candidates/ 清空；goal.md Stage Log 累計至 seq=05；lessons.md 新增 3 筆（共 8 筆）；playbook.md 新增 3 行。
+> next: 切換 model，開始 pm-suite Phase 1 實作（計畫在 knowledge-os/docs/superpowers/plans/2026-06-04-pm-suite-phase1.md）。
