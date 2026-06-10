@@ -5,7 +5,7 @@ kind: dev_goal
 project: pm-suite
 stage: Build
 method: [Next.js, SQLite, Claude-API, Notion-API, TDD]
-phase_done: 3
+phase_done: 3.5
 phase_total: 6
 mirror: true
 source_date: 2026-06-10
@@ -58,3 +58,8 @@ source_date: 2026-06-10
 > did: 完成 Feature B 剩餘（B4–B8，B7/B8 改為 ProjectInfoBar 常駐看板頂端而非抽屜）：applyProjectInfo 在 importTenderDraft 落地（B4）、GET /api/projects/[id]（B5）、DocumentReview 聯絡人三欄（B6）、ProjectInfoBar 可內聯編輯含得標日 date-input 與里程碑欄位（B7/B8）。卡片附件上傳/下載/刪除（migration v4 card_attachments）；行事曆改 4 週滾動視圖（前1週+後3週）＋/api/calendar 改 date range 查詢（listEventsForRange + listDatedCardsForRange）；AlertStrip 改呼叫 /api/alerts 同時涵蓋 events+cards 7 天到期；migration v5 加 milestone 欄位。feat/card-deadline-calendar（26 commits）fast-forward 合併 main（HEAD 33057f3），分支刪除。Notion Stage Log 同步寫入（UID 01PMSUITE00000001#2026-06-10#01）。
 > result: pm-suite main HEAD 33057f3；migration v3–v5 落地；tsc 乾淨；_candidates/ 本次未產生。
 > next: Phase 4：Notion 雙向同步（PM Suite 任務完成狀態推送至 Notion）；或先補 Phase 3 剩餘（Notion 寫入：匯入後把解析資料/任務推至 Notion）。
+
+> [!progress] stage=Build date=2026-06-10 goal=01PMSUITE00000001 seq=06
+> did: 完成 Phase 3 剩餘 — Notion 寫入（匯入後自動推送 + 手動重推 + sync badge）。新增 @notionhq/client；notion-sync.ts（buildPageProperties、buildPageBody、pushProjectToNotion，dependency-injected client 供測試，不用 module mock）；generateProjectSummary（Claude Haiku，無 key 時 fallback）；POST /api/projects/[id]/notion-push；import route 加 void pushProjectToNotion non-blocking；settings 頁加 Notion token 欄位；ProjectInfoBar 加 sync badge（synced/error/skipped/未推送）+ 推送 Notion 按鈕。Project type 補 notion_page_id/sync_status/last_synced_at/content_hash。migration version assertions 修正（v3→v5）。
+> result: pm-suite main HEAD ea4e2a5；86 tests 綠；tsc 乾淨。Phase 3 全完成。
+> next: Phase 4 Notion 雙向同步；或 Phase 3 補充（付款/分期/請款里程碑，需改 AI 解析 schema）。
