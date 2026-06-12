@@ -5,10 +5,10 @@ kind: dev_goal
 project: pm-suite
 stage: Build
 method: [Next.js, SQLite, Claude-API, Notion-API, TDD]
-phase_done: 3.5
+phase_done: 3.9
 phase_total: 6
 mirror: true
-source_date: 2026-06-10
+source_date: 2026-06-12
 ---
 # Goal：PM Suite — 政府標案專案管理系統
 
@@ -63,3 +63,8 @@ source_date: 2026-06-10
 > did: 完成 Phase 3 剩餘 — Notion 寫入（匯入後自動推送 + 手動重推 + sync badge）。新增 @notionhq/client；notion-sync.ts（buildPageProperties、buildPageBody、pushProjectToNotion，dependency-injected client 供測試，不用 module mock）；generateProjectSummary（Claude Haiku，無 key 時 fallback）；POST /api/projects/[id]/notion-push；import route 加 void pushProjectToNotion non-blocking；settings 頁加 Notion token 欄位；ProjectInfoBar 加 sync badge（synced/error/skipped/未推送）+ 推送 Notion 按鈕。Project type 補 notion_page_id/sync_status/last_synced_at/content_hash。migration version assertions 修正（v3→v5）。
 > result: pm-suite main HEAD ea4e2a5；86 tests 綠；tsc 乾淨。Phase 3 全完成。
 > next: Phase 4 Notion 雙向同步；或 Phase 3 補充（付款/分期/請款里程碑，需改 AI 解析 schema）。
+
+> [!progress] stage=Build date=2026-06-12 goal=01PMSUITE00000001 seq=07
+> did: UI/UX 全面升級（Lucide icons 取代 emoji、Tailwind v4 @theme 語義色票、可存取 Modal 元件 focus trap/Esc/aria-modal/動畫、告警條真實狀態計算 lib/alerts.ts、KanbanBoard 內聯表單取代 window.prompt、拖曳視覺回饋 dragOverColumnId）；結構化付款里程碑（AI 解析 schema 擴展 TENDER_TOOL、DB migration v7 TEXT JSON 欄位、parseProject 邊界反序列化、ProjectInfoBar read-only 表格）；多文件支援（ImportTarget auto/new/number、import API backward-compatible 雙格式、DocumentReview 匯入目標選單）；手動新增專案（NewProjectModal＋8 色色票、側欄 + 按鈕）。
+> result: pm-suite main HEAD db9837a；commits 86d8f77→9361cec→db9837a；111 tests 綠；tsc 乾淨。KMOS+Notion 同步：補建缺漏 stage log #2026-06-09#01、#2026-06-10#02，goal phase_done 升至 3.9。
+> next: Phase 4 Notion 雙向同步（任務完成狀態推 Notion）；或 SLA 到期追蹤（sla_terms 結構化）。
