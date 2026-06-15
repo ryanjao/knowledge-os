@@ -67,3 +67,33 @@ mirror: false
 > what: 使用者輸入 "km-review"，Claude 誤呼叫 `init` skill（用於建立 CLAUDE.md），而非執行 `/km-review` slash command，導致短暫跑錯方向。
 > fix: 發現 `/km-review` 是定義在 `.claude/commands/km-review.md` 的 slash command，非 skill；讀取該檔後直接依其步驟執行，不需透過 Skill 工具。
 > rule: 使用者輸入形似 slash command（如 "km-review"、"km-sync"）時，先查 `.claude/commands/` 是否有對應 `.md`；有則直接讀取執行，無須呼叫 Skill 工具。
+
+> [!lesson] skill=taste-skill stage=Build error=design-token-bypass
+> what: 專案已在 globals.css `@theme` 定義 `--color-primary`（blue-600），但實際 UI 大量硬寫 `focus:border-blue-500`（13×）、`bg-slate-800` 當儲存鍵、`text-red-*`（~20×），導致「同一個動作不同顏色」的一致性破口——定義了 token 不等於用了 token。
+> fix: 審查時用 grep 量化驗證（`grep -rohE "(text|bg|border)-(blue|red)-[0-9]+"` 統計頻率、`grep focus-visible | wc -l`），才抓出 primary 動作雙色與 focus ring 缺失。
+> rule: review 設計一致性時，凡專案宣稱有 design token，一律 grep 原始色階 util 統計頻率對照 token 定義；token 存在 ≠ 一致，要量化證明而非目視。
+
+> [!lesson] skill=taste-skill stage=Build error=zsh-glob-nomatch
+> what: 在 Bash 工具跑 `grep -rn "x" --include=*.tsx .` 時 zsh 先把未加引號的 `*.tsx` 當 glob 展開，因 cwd 無相符檔而報 `no matches found`，整條指令未執行。
+> fix: 把 glob 樣式加引號 `--include="*.tsx"`，交給 grep 自己解析而非 shell。
+> rule: 在 zsh 下傳給工具（grep/find）的 glob 樣式一律加引號（`"*.tsx"`），避免 shell 搶先展開造成 no-match 中止。
+
+> [!lesson] skill=subagent-driven-development stage=Build error=batch-must-end-green
+> what: 原計畫把「型別變更」獨立成一個 task/batch，但改 PaymentMilestone/Deliverable 型別會立刻讓 claude.ts、projects.ts 與既有測試編譯失敗，直到後面 task 才修好——type-only 的 batch 無法收在綠燈。
+> fix: 重新分批，讓每個 subagent batch 自成一個會綠的單元：型別變更要和它的所有 consumer 綁在同一 batch，結尾 tsc+vitest+build 全綠。
+> rule: subagent-driven 分批時，每個 batch 必須能獨立收在綠燈；型別變更要和它的所有 consumer 綁在同一 batch，不可把 type 與用它的程式拆到不同 batch。
+
+> [!lesson] skill=brainstorming stage=Build error=scope-word-ambiguity
+> what: 目標卡寫「Phase 4 Notion 雙向同步」，但 Phase 3 其實已做完 PM→Notion 推送；直接照字面做會重工或誤做真雙向。使用者口頭「自動 vs 手動」也一度自相矛盾。
+> fix: 先讀現有 notion-sync.ts 確認已實作範圍，再用單選逐題釐清；並請使用者貼真實資料，才發現真正缺口在「上游抽取（相對日期、保證金混入）」而非推送。
+> rule: 接「下一階段」前先讀該領域既有程式確認實際完成度，別只信目標卡字面；範圍詞（雙向/同步/自動）一律向使用者單題確認，並盡量索取真實樣本資料驗證模型假設。
+
+> [!lesson] skill=subagent-driven-development stage=Build error=schema-test-isolation
+> what: 版本化 schema 的整合測試（Task 3）因卡片 path 也會呼叫 dataSources.update，若未提前 seed 卡片 schema settings，斷言「無 狀態 re-send」會被卡片 update call 污染。
+> fix: 在 'existing install' test 手動 INSERT notion_cards_schema_ready='1' 與 notion_cards_view_grouped='1' 以隔離卡片路徑雜訊。
+> rule: Notion 整合測試要斷言 dataSources.update 呼叫的 properties 內容時，必須把所有「其他路徑」的 schema update 也事先 gate 掉，否則斷言結果不可信。
+
+> [!lesson] skill=subagent-driven-development stage=Build error=stale-comment
+> what: Task 3 把 DATA_SOURCE_PROPERTIES 常數移除後，buildPageProperties 上方的 JSDoc 仍引用了已不存在的常數名稱，final reviewer 抓到。
+> fix: 同 commit 修正 comment（chore: fix stale comment referencing removed DATA_SOURCE_PROPERTIES）。
+> rule: 重命名或移除常數時，同步搜尋該名稱在 comment 中的出現，一併更新。

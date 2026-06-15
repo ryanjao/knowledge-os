@@ -5,10 +5,10 @@ kind: dev_goal
 project: pm-suite
 stage: Build
 method: [Next.js, SQLite, Claude-API, Notion-API, TDD]
-phase_done: 3.9
+phase_done: 4
 phase_total: 6
 mirror: true
-source_date: 2026-06-12
+source_date: 2026-06-15
 ---
 # Goal：PM Suite — 政府標案專案管理系統
 
@@ -68,3 +68,18 @@ source_date: 2026-06-12
 > did: UI/UX 全面升級（Lucide icons 取代 emoji、Tailwind v4 @theme 語義色票、可存取 Modal 元件 focus trap/Esc/aria-modal/動畫、告警條真實狀態計算 lib/alerts.ts、KanbanBoard 內聯表單取代 window.prompt、拖曳視覺回饋 dragOverColumnId）；結構化付款里程碑（AI 解析 schema 擴展 TENDER_TOOL、DB migration v7 TEXT JSON 欄位、parseProject 邊界反序列化、ProjectInfoBar read-only 表格）；多文件支援（ImportTarget auto/new/number、import API backward-compatible 雙格式、DocumentReview 匯入目標選單）；手動新增專案（NewProjectModal＋8 色色票、側欄 + 按鈕）。
 > result: pm-suite main HEAD db9837a；commits 86d8f77→9361cec→db9837a；111 tests 綠；tsc 乾淨。KMOS+Notion 同步：補建缺漏 stage log #2026-06-09#01、#2026-06-10#02，goal phase_done 升至 3.9。
 > next: Phase 4 Notion 雙向同步（任務完成狀態推 Notion）；或 SLA 到期追蹤（sla_terms 結構化）。
+
+> [!progress] stage=Build date=2026-06-15 goal=01PMSUITE00000001 seq=08
+> did: 用 taste-skill 對整個 pm-suite 前端做全面設計審查（讀遍 globals.css、layout、AppShell、Sidebar、Modal、KanbanBoard、CardDetail、ProjectInfoBar、AlertStrip、CalendarView、DocumentReview、FirstRunSetup、NewProjectModal 及四個 page），並用 grep 驗證跨檔一致性宣稱。
+> result: 整體判定「品質高、非 AI-slop」，問題集中在跨畫面一致性漂移。確認 8 項問題（依嚴重度）：①FirstRunSetup 暗色與全站亮色不一致 ②儲存鍵雙色 ③focus:outline-none/無 focus-visible（WCAG 2.4.7）④emoji 與 Lucide 並存 ⑤--color-primary 被 blue-500 硬寫繞過 ⑥h-screen 應改 dvh ⑦CardDetail 仍用 window.confirm ⑧input 圓角漂移。
+> next: 開分支實作 #1–#8 設計一致性修正。
+
+> [!progress] stage=Build date=2026-06-15 goal=01PMSUITE00000001 seq=09
+> did: 設計一致性收尾：taste-skill 審查抓出的 8 項，分兩批 #1–#4、#5–#8 各開分支實作驗證後合併 main（merge 87b1396、08f28a1）。啟動 Phase 4：brainstorm 釐清「雙向同步」實為「強化單向手動推送」，再因使用者貼真實標案資料改為「先修抽取再推送」。產出 spec（commit e576dec）+ 兩個 plan（commit 896a964），用 subagent-driven 執行 Plan 1（Part A+B 抽取強化）完成。
+> result: main HEAD 08f28a1（含設計修正全部）。分支 feat/phase4-extraction-push Plan 1 完成：commits ccfc889→8de889d—TW假日表+loader、due-date resolver、claude TENDER_TOOL/prompt/normalize、parseProject/import 串接、summarizePayments。130 tests 綠、tsc/build 過。
+> next: 同分支執行 Plan 2（Part C 推送）：付款里程碑入 Notion 內文+emoji→文字、一覽表加欄位、版本化 schema。
+
+> [!progress] stage=Build date=2026-06-15 goal=01PMSUITE00000001 seq=10
+> did: 完成 Phase 4 Plan 2（Notion 推送強化）— 4 tasks：付款里程碑 5 欄表格入 buildPageBody + emoji→文字；buildPageProperties 加 金額/得標日/里程碑/付款期數（summarizePayments）；DATA_SOURCE_PROPERTIES 拆成 BASE_PROPERTIES（非 select 可重送，版本 gate notion_projects_schema_version='2'）+ SELECT_PROPERTIES（建立時一次送）；stale comment 修正。
+> result: 137 tests 全綠，tsc 乾淨，build 成功。commits 529cf15→41e4fe4（feat/phase4-extraction-push）。Phase 4 全完成，branch 待 push/PR。
+> next: 建立 GitHub remote 並推 PR；tw-holidays.json 缺年度假日需每年補；Phase 5（Email 通知、資安提醒）或 SLA 追蹤。
