@@ -40,3 +40,13 @@ source_date: 2026-05-29
 > did: 定義 Phase 2 backlog（position sizing / rebalance / ranking 訊號，皆 surface-only）
 > result: 範圍明確，維持 HITL；Phase 3 風險引擎留待 6 個月真實交易後
 > next: 累積真實交易紀錄，再評估 Phase 2
+
+> [!progress] stage=Validate date=2026-05-29 goal=01KSS7QEMGVS23YM2Q05G0RSZ3 seq=03
+> did: portfolio CLI 補 remove 指令、add 容錯缺失/無效 watchlist；pipeline 加 --force 跳過同日重抓；watchlist 新增 ONDS（Digital_Infrastructure）
+> result: 交易帳本可增可刪、管線可強制重跑，週間操作更穩健
+> next: 實作 Macro Engine（VIX/殖利率曲線/淨流動性 → RISK ON/OFF），取代報告中「未啟用 (Phase 2 Macro Engine)」佔位
+
+> [!progress] stage=Validate date=2026-06-01 goal=01KSS7QEMGVS23YM2Q05G0RSZ3 seq=04
+> did: 整合 5 個 Notion 頁面（頭腦風暴 rev2 / 階段式開發規畫 / reports 報告生成 / Phase 1 執行狀態 / 使用說明）成統一設計規格書；寫入 vault design-spec.md；同步推送至 Notion
+> result: 投資哲學、系統架構、DB Schema、Alpha Score、報告規格、Spec vs 實作差異、Phase Roadmap、使用指引全部整合於單一文件
+> next: 實作 Macro Engine（VIX/殖利率曲線/淨流動性）取代 macro_status 佔位

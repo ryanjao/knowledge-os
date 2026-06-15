@@ -83,3 +83,13 @@ source_date: 2026-06-15
 > did: 完成 Phase 4 Plan 2（Notion 推送強化）— 4 tasks：付款里程碑 5 欄表格入 buildPageBody + emoji→文字；buildPageProperties 加 金額/得標日/里程碑/付款期數（summarizePayments）；DATA_SOURCE_PROPERTIES 拆成 BASE_PROPERTIES（非 select 可重送，版本 gate notion_projects_schema_version='2'）+ SELECT_PROPERTIES（建立時一次送）；stale comment 修正。
 > result: 137 tests 全綠，tsc 乾淨，build 成功。commits 529cf15→41e4fe4（feat/phase4-extraction-push）。Phase 4 全完成，branch 待 push/PR。
 > next: 建立 GitHub remote 並推 PR；tw-holidays.json 缺年度假日需每年補；Phase 5（Email 通知、資安提醒）或 SLA 追蹤。
+
+> [!progress] stage=Build date=2026-06-05 goal=01PMSUITE00000001 seq=01
+> did: inline 執行完成 Phase 2 Task 6-8：6 個 REST API routes（boards/tasks/columns/cards + [id]）、Kanban UI（KanbanBoard.tsx + /kanban，原生 HTML5 拖曳 + 專案彩色標籤 + 篩選 + 欄位管理）、端對端 D3 驗證。再寫好 Phase 3 計畫（8 task，upload + Claude 解析 + App 內審閱 + 確定性匯入；經使用者確認 scope：不含 Notion、留 Phase 4，審閱用 App 內預覽頁）。
+> result: Phase 2 完成，commits 至 854c06a，44 tests 綠、build 綠；D3 端對端驗證通過（拖 task-linked 卡片到「已完成」→ task done → events.is_completed=1 → 首頁月曆/告警對應截止日消失）。Phase 3 計畫 commit bf743a3。
+> next: 執行 Phase 3（inline 或 subagent）；Task 8 的 live Claude 解析需在 .env.local 設 CLAUDE_API_KEY，未設則 import 確定性路徑仍可完整驗證。
+
+> [!progress] stage=Build date=2026-06-15 goal=01PMSUITE00000001 seq=11
+> did: 執行 km-review（手動）：讀 knowledge-os 規則，整合本日 pm-suite candidates 寫入 SoT（phase_done 3.9→4，seq=08-10，+6 lessons）。建立 GitHub remote（ryanjao/pm-suite），推 feat/phase4-extraction-push，開 PR #1 並 merge，分支刪除。
+> result: knowledge-os SoT 更新完畢（Phase 4 全記錄在案）。pm-suite GitHub repo 建立，main + Phase 4 commits 已在 GitHub。
+> next: Phase 5（Email 通知、資安提醒）或 SLA 到期追蹤（sla_terms 結構化）；tw-holidays.json 每年需補官方假日。

@@ -97,3 +97,58 @@ mirror: false
 > what: Task 3 把 DATA_SOURCE_PROPERTIES 常數移除後，buildPageProperties 上方的 JSDoc 仍引用了已不存在的常數名稱，final reviewer 抓到。
 > fix: 同 commit 修正 comment（chore: fix stale comment referencing removed DATA_SOURCE_PROPERTIES）。
 > rule: 重命名或移除常數時，同步搜尋該名稱在 comment 中的出現，一併更新。
+
+> [!lesson] skill=writing-plans stage=Build error=goal-card-missing-stagelog
+> what: pm-suite 目標卡（writing-plans 階段建立）沒有 `## Stage Log` 區塊與 km-review marker，km-review approve 要把 [!progress] append 進去時無落點。
+> fix: approve 時先 append 一個 `## Stage Log` 區塊 + `<!-- /km-review 由此 append [!progress] -->` marker 再寫 progress（屬 append，不違反只增不改的閘規）。
+> rule: 建立 dev_goal 目標卡時就內建 `## Stage Log` 區塊與 km-review marker，讓後續 progress 有固定落點，避免 promotion 卡關。
+
+> [!lesson] skill=system-design stage=Build error=stale-context-note
+> what: km-sync 的 CONTEXT.md/README 路線圖寫「Phase 2b Notion 推送待做」，但實際 repo 已有 push.py / notion_api.py / cli.py 的 sync 指令；真正卡點是缺 notion.config.local.json（token + db id），不是缺程式碼。
+> fix: 直接讀程式碼（cli.py、push.py）查證能力，而非信 CONTEXT 註記；確認阻塞點是設定檔而非實作後再回報。
+> rule: 判斷工具能力以程式碼為準，CONTEXT/README 路線圖可能落後實作；在回報「做不到」前先驗證實際程式與設定檔狀態。
+
+> [!lesson] skill=architecture stage=Build error=lock-blocks-same-machine-workers
+> what: v2 止血加的 pm-suite.lock 機器鎖在 Next.js dev/prod 多 worker 進程下會互鎖——worker A 持有 live lock（其 pid 存活），worker B 的請求被擋下全 500。Task 8 端對端驗證才暴露（events/cards API 突然 500）。
+> fix: acquireLock 改成「只擋來自不同機器的 live lock」；同機 holder 一律放行（同機並發由 SQLite WAL 安全處理；活的 DB 已在本機 app-data，跨機才是鎖要防的情境）。加回歸測試 multi-worker same-machine 必須可取得鎖。
+> rule: 設計檔案鎖前先確認執行模型的進程數；Web 框架（Next.js）會跑多 worker，鎖的粒度要是「機器/實例」而非「進程」，否則同機並發會自我死鎖。
+
+> [!lesson] skill=typescript stage=Build error=spread-default-duplicate-key
+> what: 為 CalendarEvent 加上 task_id 後，createEvent 用 `{ task_id: null, ...input }` 提供預設值；因 input 型別現在必含 task_id，TS2783「specified more than once」在 next build 變成硬錯誤（vitest 不型檢所以測試沒抓到）。
+> fix: 把欲覆寫的鍵放在 spread「之後」（`{ ...input, task_id: input.task_id ?? null }`），並把該欄位在輸入型別設為 optional。
+> rule: 提供預設值別用「字面鍵在前、spread 在後」（會觸發 TS2783）；要嘛 spread 在前覆寫在後，要嘛預設欄位在輸入型別設 optional。build 的型檢比 vitest 嚴，完工前一定跑 next build。
+
+> [!lesson] skill=systematic-debugging stage=Build error=silent-filter-drop
+> what: goal 因 frontmatter 值不在白名單被靜默略過，sync report 的 blocked/dropped 都是 0，使用者與工具都無從察覺漏了哪個專案。
+> fix: 從「症狀（dashboard 缺項）」往上游追資料流——比對正常專案與異常專案的 frontmatter（status: verified vs active），再讀 engine 的過濾常數 `GOAL_STATUSES` 確認 active 不在內。
+> rule: 凡是「該出現的東西沒出現」且工具回報無錯，先懷疑「不符 filter 被靜默丟棄」而非「程式壞了」；對照一個已知正常的樣本的 frontmatter 是最快的定位法。
+
+> [!lesson] skill=systematic-debugging stage=Build error=non-code-symptom-misattributed
+> what: 使用者把頁首靜態日期「更新：2026-05-31」當成同步失效證據，容易誤導往「sync 壞了」方向查。
+> fix: 讀 push.py 確認同步只 create/update 兩個 DB 的 properties，沒有任何程式碼觸碰頁首 callout → 該文字本就不會自動更新。
+> rule: 報告的「最後更新」要區分「程式維護的欄位」與「人手打的裝飾文字」；診斷前先確認該符號到底由誰維護，別把靜態文字當動態狀態。
+
+> [!lesson] skill=writing-plans stage=Build error=scaffold-version-drift
+> what: 實作計畫假設 Astro 5 + @astrojs/tailwind + tailwind.config.mjs（Tailwind v3），但 `npm create astro` 實際給 Astro 6 + Tailwind v4（CSS 設定制，無 config 檔，token 在 @theme）。
+> fix: 採用當前官方工具不降級，把計畫 Task 2/3 即時改寫為 v4 @theme 機制（語意 utility 名稱不變，只換定義方式），並記入 CLAUDE.md/memory。
+> rule: 計畫不要硬寫死框架版本與設定檔假設；scaffold 後先驗證實際產出版本再適配，視為正常偏差而非錯誤。
+
+> [!lesson] skill=subagent-driven-development stage=Build error=git-add-removed-path-aborts
+> what: 用 `git add -A` 帶入一個已被 `git rm` 的路徑 → fatal pathspec，整個 staging 中止，結果 commit 只含那個刪除、其餘修改沒進去。
+> fix: 改用 `git commit --amend` 補上明確存在的檔案路徑；事後以 `git show --stat HEAD` 驗證 commit 內容。
+> rule: git add 只列確實存在的路徑（或用 `git commit -am`）；commit 後一律 --stat 檢查實際內容，別假設成功。
+
+> [!lesson] skill=test-driven-development stage=Build error=playwright-strict-multiple-match
+> what: Playwright `getByText`/`getByRole` 命中重複文字（nav 連結與 hero 按鈕同名「詢問檔期」、價格「8,000」在兩張卡都出現）→ strict-mode 多重匹配失敗。
+> fix: 加 `.first()` 或縮小 locator 範圍（scope 到容器）。
+> rule: 斷言可能在導覽列＋內文重複出現的文字時，預先用 scope 或 `.first()`，避免 strict-mode 報錯。
+
+> [!lesson] skill=frontend-design stage=Build error=force-crop-mismatched-aspect
+> what: 對來源比例不一（IG 多為 4:3 與 4:5）的照片硬套 `object-cover` + 固定 aspect 方框，裁切結果切到頭/身體很怪。
+> fix: 改用原始比例（`h-auto w-full`）或瀑布流，不強制統一裁切。
+> rule: 使用者提供的混合比例圖庫，預設以原比例呈現；要統一裁切前先確認來源比例分佈。
+
+> [!lesson] skill=brainstorming stage=Build error=vague-visual-feedback-loop
+> what: 面對「整個版面不滿意」這類主觀模糊回饋反覆用猜的，連續被否決、浪費回合。
+> fix: 改用「在實際頁面渲染、一次只變動一個維度」的比較頁讓使用者選（純字體比較頁、即時配色切換器、只換版面結構的 /preview a–e）。
+> rule: 主觀視覺回饋要用並排的實際渲染、隔離單一變項來收斂，而非靠文字描述猜測。

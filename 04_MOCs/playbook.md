@@ -27,3 +27,14 @@ mirror: false
 - 2026-06-04 — stage=Build skill=architecture error=sqlite-on-cloud-sync — 永不把活的 SQLite/WAL 放雲端區塊級同步資料夾；跨機同步「靜止快照」或用 sync-aware 後端，勿同步活檔
 - 2026-06-04 — stage=Build skill=architecture error=llm-as-data-bus — AI 只當一次性資料提取器（產 draft），不可當資料同步管道；結構化 upsert/diff 一律走確定性程式碼 + 穩定外部 ID
 - 2026-06-04 — stage=Build skill=slash-command error=wrong-skill-invocation — 輸入形似 slash command（km-review/km-sync）先查 .claude/commands/ 有無對應 .md，有則直接讀取執行，勿呼叫 Skill 工具
+- 2026-06-04 — stage=Build skill=writing-plans error=goal-card-missing-stagelog — 建立 dev_goal 目標卡時就內建 ## Stage Log 區塊與 km-review marker，讓後續 progress 有固定落點
+- 2026-06-04 — stage=Build skill=system-design error=stale-context-note — 判斷工具能力以程式碼為準，CONTEXT/README 路線圖可能落後實作；回報「做不到」前先驗證實際程式與設定檔狀態
+- 2026-06-05 — stage=Build skill=architecture error=lock-blocks-same-machine-workers — Web 框架跑多 worker，檔案鎖粒度要是「機器/實例」而非「進程」，否則同機並發自我死鎖
+- 2026-06-05 — stage=Build skill=typescript error=spread-default-duplicate-key — 提供預設值用 spread 在前覆寫在後，或預設欄位設 optional；build 型檢比 vitest 嚴，完工前一定跑 next build
+- 2026-06-05 — stage=Build skill=systematic-debugging error=silent-filter-drop — 「該出現的東西沒出現」且工具無錯，先懷疑不符 filter 被靜默丟棄；對照已知正常樣本的 frontmatter 是最快定位法
+- 2026-06-05 — stage=Build skill=systematic-debugging error=non-code-symptom-misattributed — 診斷前先確認符號由誰維護，別把靜態文字當動態狀態指標
+- 2026-06-08 — stage=Build skill=writing-plans error=scaffold-version-drift — 計畫不硬寫框架版本；scaffold 後先驗證實際版本再適配，視為正常偏差
+- 2026-06-08 — stage=Build skill=subagent-driven-development error=git-add-removed-path-aborts — git add 只列確實存在的路徑；commit 後 --stat 驗證實際內容，別假設成功
+- 2026-06-08 — stage=Build skill=test-driven-development error=playwright-strict-multiple-match — 斷言可能重複出現的文字時預先 scope 或 .first()，避免 strict-mode 報錯
+- 2026-06-08 — stage=Build skill=frontend-design error=force-crop-mismatched-aspect — 混合比例圖庫預設以原比例呈現；要統一裁切前先確認來源比例分佈
+- 2026-06-08 — stage=Build skill=brainstorming error=vague-visual-feedback-loop — 主觀視覺回饋要並排實際渲染、隔離單一變項來收斂，而非靠文字描述猜測
