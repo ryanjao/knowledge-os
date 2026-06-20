@@ -101,15 +101,17 @@ echo "my-app" > /path/to/my-app/.km-project
 
 用 `_templates/goal-note.md` 在 `03_Projects/my-app/` 建目標卡（`kind: dev_goal`）。
 
-### 5.（選用）安裝骨幹 SOP
+### 5. 安裝骨幹 SOP（推薦）
 
-`CLAUDE.md` 是配套的 5-Phase 開發方法論。複製到全域讓所有專案都套用：
+knowledge-os 的目的是支援**所有專案**——學到的東西跨 session 留存、跨專案查得到。骨幹 SOP 同理：它應該對你的每個專案都生效，而不是只在這個目錄有作用。
 
 ```bash
 cp CLAUDE.md ~/.claude/CLAUDE.md
 ```
 
-記得把 `§0.7` 的 Registry URL 換成你自己的 Notion 頁面。
+複製到全域後，Claude Code 在任何目錄開啟都會自動載入。記得把 `§0.7` 的 Registry URL 換成你自己的 Notion 頁面。
+
+> 若只放在 repo 根目錄而不複製到全域，骨幹 SOP 只對 `knowledge-os/` 這個目錄有效，其他專案不受保護。
 
 ### 6.（選用）Notion 同步
 
