@@ -39,8 +39,9 @@ reason="本次開發 session 結束。請執行 Session 收尾捕捉：
    路徑：$candidate
 2. 內容用以下格式（依本次 session 實情填寫，可多筆 [!progress] 與 [!lesson]）：
    - 先讀 $VAULT/03_Projects/$project/ 找 kind: dev_goal 目標卡，取其 frontmatter uid 當 goal=；找不到就 goal=${project}。
-   - [!progress] stage=<目前階段> date=$today goal=<uid或${project}> seq=01 ，body：did/result/next。
-   - 每個本次踩到並解掉的錯誤寫一筆 [!lesson] skill=<相關skill> stage=<階段> error=<錯誤類型短標籤>，body：what/fix/rule。
+   - [!progress] stage=<目前階段> date=$today goal=<uid或${project}> seq=01 source=<來源> ，body：did/result/next。
+   - 每個本次踩到並解掉的錯誤寫一筆 [!lesson] skill=<相關skill> stage=<階段> error=<錯誤類型短標籤> source=<來源>，body：what/fix/rule。
+   - source= 標知識來源（見 _docs/conventions.md §6）：human=你的判斷／決策；ai=Claude 推論未經人工驗證；experiment=本次實測／跑過驗證過；external=外部來源（可再加 source_ref=URL）。本次多為當下實作與解錯 → 通常 source=experiment。
 3. 寫完該檔後即可正常結束（停止）。"
 
 pending=$(ls -1 "$candir"/*.md 2>/dev/null | grep -v '/\.gitkeep$' | wc -l | tr -d ' ')
