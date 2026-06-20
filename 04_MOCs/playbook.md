@@ -38,3 +38,5 @@ mirror: false
 - 2026-06-08 — stage=Build skill=test-driven-development error=playwright-strict-multiple-match — 斷言可能重複出現的文字時預先 scope 或 .first()，避免 strict-mode 報錯
 - 2026-06-08 — stage=Build skill=frontend-design error=force-crop-mismatched-aspect — 混合比例圖庫預設以原比例呈現；要統一裁切前先確認來源比例分佈
 - 2026-06-08 — stage=Build skill=brainstorming error=vague-visual-feedback-loop — 主觀視覺回饋要並排實際渲染、隔離單一變項來收斂，而非靠文字描述猜測
+- 2026-06-20 — stage=Build skill=security error=pipeline-scan-gap — 敏感掃描必須在每一個「寫入 SoT 前」的節點觸發，不只在「同步外部服務前」。
+- 2026-06-20 — stage=Build skill=security error=classification-design — 敏感程度分級先從最小可行開始（confidential boolean），待實際使用再評估是否需要更細粒度。

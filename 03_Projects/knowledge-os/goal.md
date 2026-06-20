@@ -77,3 +77,13 @@ source_date: 2026-06-03
 > did: 盤點 juiyujao 所有專案中安裝與自行開發的 skill。掃描 `~/.claude/skills`、各 marketplace plugin cache、以及各專案 `.claude/`（排除 node_modules 內套件自帶的 SKILL.md）。
 > result: 自製 2 個——`gmail-organizer`（user 層 skill）、`km-review`（knowledge-os 專案 slash command，非 SKILL.md 格式但屬自製工作流）；安裝 ~33 個，來自 4 個 marketplace（anthropic-agent-skills 的 document-skills 17 個、superpowers 14 個、ui-ux-pro-max 1 個、claude-plugins-official 雜項）。其他專案 `.claude/` 僅有 settings，無自製 skill。
 > next: （待定）可將清單寫成 `SKILLS-INVENTORY.md` 存入 knowledge-os（如 `02_Notes/`）方便日後查閱。
+
+> [!progress] stage=Build date=2026-06-20 goal=01KKMOSSELFGOAL0001 seq=01
+> did: 評估兩份 knowledge-os 推廣文案（個人敘事版 vs 串文規劃版），產出修訂版 Threads 貼文，確立多平台推廣策略分工
+> result: 決策——Threads 用第一份個人敘事版（修訂：刪「準備開源中」、補 GitHub 連結）；第二份技術串文內容改投 Reddit r/ClaudeAI 長文；「幫 Claude 裝上長期記憶體」表述不準確已糾正（knowledge-os 是給人建知識庫，非給 AI 加記憶）
+> next: 確認 GitHub repo 連結後發布 Threads 貼文；另開 Reddit r/ClaudeAI 技術長文草稿
+
+> [!progress] stage=Build date=2026-06-20 goal=01KKMOSSELFGOAL0001 seq=01
+> did: 完成 knowledge-os 全專案資訊安全審核，列出六層防禦清單（物理隔離、token 化規範、敏感掃描、投影 opt-in、Human-in-the-Loop、思維風格保護）；評估三份外部安全改善建議（共六條具體提案）；排出實作優先順序
+> result: 決策——採納 Provenance 追蹤（callout 加 source= 欄位）、Pre-flight 環境完整性校驗（SessionStart hook 加 git check-ignore）、confidential flag（single flag 替代四級分類）；暫緩 security_bypass 白名單（待偽陽性頻率確認）；不採納 CI/PR 安全閘（overkill for 單人 PKM）；識別出三份建議都未捕捉的關鍵缺口：promote.py 中間層無敏感掃描，敏感內容可能寫入 SoT 再才被 km-sync 攔截
+> next: 依優先順序實作：① promote.py 補敏感掃描 ② conventions.md 加 source= 規範 ③ hook 加 Pre-flight 完整性校驗 ④ data-contract.yaml 加 confidential flag ⑤ conventions.md 加 token 輪替政策

@@ -152,3 +152,13 @@ mirror: false
 > what: 面對「整個版面不滿意」這類主觀模糊回饋反覆用猜的，連續被否決、浪費回合。
 > fix: 改用「在實際頁面渲染、一次只變動一個維度」的比較頁讓使用者選（純字體比較頁、即時配色切換器、只換版面結構的 /preview a–e）。
 > rule: 主觀視覺回饋要用並排的實際渲染、隔離單一變項來收斂，而非靠文字描述猜測。
+
+> [!lesson] skill=security stage=Build error=pipeline-scan-gap
+> what: promote.py 只做 YAML 結構驗證，不做內容敏感掃描。敏感資料若寫進 candidate 並被 promote，會先寫入 SoT（lessons.md / goal.md），km-sync 同步時才被 hard_block 攔截。SoT 已污染但 Notion 無外洩。
+> fix: 在 promote.py 寫入 SoT 前，重用 data-contract.yaml 的 hard_block pattern 跑一次掃描；命中則拒絕 promote 並輸出規則 ID。
+> rule: 敏感掃描必須在每一個「寫入 SoT 前」的節點觸發，不只在「同步外部服務前」。
+
+> [!lesson] skill=security stage=Build error=classification-design
+> what: binary `mirror: true/false` 無法分類商業資訊（如併購計畫、客戶名稱）——這類資料不是密碼，regex 抓不到，但同樣不該同步。
+> fix: 加單一 `confidential: true` flag（優先於 mirror 設定），凡帶此 flag 的筆記預設禁止同步，不需四層分級制度。
+> rule: 敏感程度分級先從最小可行開始（confidential boolean），待實際使用再評估是否需要更細粒度。
