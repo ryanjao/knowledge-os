@@ -93,3 +93,8 @@ source_date: 2026-06-15
 > did: 執行 km-review（手動）：讀 knowledge-os 規則，整合本日 pm-suite candidates 寫入 SoT（phase_done 3.9→4，seq=08-10，+6 lessons）。建立 GitHub remote（ryanjao/pm-suite），推 feat/phase4-extraction-push，開 PR #1 並 merge，分支刪除。
 > result: knowledge-os SoT 更新完畢（Phase 4 全記錄在案）。pm-suite GitHub repo 建立，main + Phase 4 commits 已在 GitHub。
 > next: Phase 5（Email 通知、資安提醒）或 SLA 到期追蹤（sla_terms 結構化）；tw-holidays.json 每年需補官方假日。
+
+> [!progress] stage=Build date=2026-06-15 goal=01PMSUITE00000001 seq=12 verified=no
+> did: 執行 /km-review 清空 _candidates/（6 筆）：4 knowledge-os + 2 pm-suite，全部 approve（#5 知識-os 949c0372 自動修正 bold 格式；#2 pm-suite b7a92737 seq 從 04 改為 01 避開 date 衝突）。寫入 knowledge-os/goal.md（+4 progress）、pm-suite/goal.md（+2 progress）、lessons.md（+11）、playbook.md（+12 行索引）。knowledge-os commit f7fe4de。此外完成 GitHub 建置：gh repo create ryanjao/pm-suite --private、push main + feat/phase4-extraction-push、gh pr create、gh pr merge --delete-branch，PR #1 fast-forward merge 成功。
+> result: _candidates/ 全部清空（0 筆）。pm-suite GitHub repo 上線（https://github.com/ryanjao/pm-suite），Phase 1–4 全部在 main。knowledge-os SoT 完整至 2026-06-15。
+> next: Phase 5（Email 通知、資安提醒）或 SLA 到期追蹤；tw-holidays.json 需每年補官方假日；可考慮建 SKILLS-INVENTORY.md 記錄已安裝 skill 清單。

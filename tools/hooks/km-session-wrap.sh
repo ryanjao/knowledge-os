@@ -33,7 +33,9 @@ candidate="$candir/${today}--${project}--${sid8}.md"
 
 reason="本次開發 session 結束。請執行 Session 收尾捕捉：
 
-1. 建立候選草稿檔（只新增此檔，**不要**修改 03_Projects 目標卡或任何 SoT 檔）：
+0. **先判斷本 session 是否有實質產出**（程式／設計／設定／文件的實際變更、解掉的錯誤、或明確決策）。
+   若**沒有**（純問候、純問答、查詢、無任何檔案變更或決策）→ **不要建立任何候選草稿**，直接正常結束。
+1. 若有實質產出，建立候選草稿檔（只新增此檔，**不要**修改 03_Projects 目標卡或任何 SoT 檔）：
    路徑：$candidate
 2. 內容用以下格式（依本次 session 實情填寫，可多筆 [!progress] 與 [!lesson]）：
    - 先讀 $VAULT/03_Projects/$project/ 找 kind: dev_goal 目標卡，取其 frontmatter uid 當 goal=；找不到就 goal=${project}。
