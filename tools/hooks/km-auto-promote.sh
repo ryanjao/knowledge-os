@@ -18,8 +18,8 @@ fi
 # (1b) 有實際併入 → 自動同步到 Notion（--no-autolog 避免與候選流程重複；非致命）
 sync_out=""
 if printf '%s' "$promote_out" | grep -q '併入 [1-9]'; then
-  KM_SYNC="/Users/juiyujao/Projects/km-sync/.venv/bin/km-sync"
-  if [ -x "$KM_SYNC" ]; then
+  KM_SYNC="${KM_SYNC_BIN:-$(command -v km-sync 2>/dev/null)}"
+  if [ -n "$KM_SYNC" ] && [ -x "$KM_SYNC" ]; then
     raw=$("$KM_SYNC" sync --vault "$VAULT" --no-autolog 2>&1); code=$?
     last=$(printf '%s' "$raw" | tail -n 1)
     if [ "$code" -eq 0 ]; then sync_out="🔄 Notion sync：$last"
