@@ -59,6 +59,12 @@ class LoadRealContractTest(unittest.TestCase):
         self.assertNotIn("email", ids)
         self.assertNotIn("tw_phone", ids)
 
+    def test_real_contract_includes_notion_token(self):
+        # P1：km-sync 自家那把鑰匙（Notion token）必須也在違禁品清單裡
+        _, compiled = load_hard_block(REAL_CONTRACT)
+        ids = [rid for rid, _ in compiled]
+        self.assertIn("notion_token", ids)
+
 
 class MinimalParseTest(unittest.TestCase):
     def test_minimal_parses_two_hard_block_rules(self):
@@ -112,6 +118,23 @@ class ScanTest(unittest.TestCase):
         tok = "ghp_" + "a" * 36
         hits = scan(f"token={tok}", self.whitelist, self.compiled)
         self.assertIn("github_token", hits)
+
+    def test_detects_ntn_notion_token(self):
+        # 新版 Notion internal integration secret：ntn_ 開頭長字串
+        tok = "ntn_" + "a" * 46
+        hits = scan(f"設定貼到 {tok} 這裡", self.whitelist, self.compiled)
+        self.assertIn("notion_token", hits)
+
+    def test_detects_legacy_secret_notion_token(self):
+        # 舊版 Notion token：secret_ + 43 碼（raw literal，無 :/= 不會被 password 規則攔到）
+        tok = "secret_" + "b" * 43
+        hits = scan(f"token={tok}", self.whitelist, self.compiled)
+        self.assertIn("notion_token", hits)
+
+    def test_prose_secret_word_not_flagged_as_notion_token(self):
+        # 散文裡的 "secret" 或短 ntn_ 不可被誤殺成 notion_token
+        hits = scan("this is a secret memo; see ntn_abc note", self.whitelist, self.compiled)
+        self.assertNotIn("notion_token", hits)
 
     def test_secret_placeholder_not_flagged(self):
         # {{SECRET_XXX}} 是合法引用，不該觸發

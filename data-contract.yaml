@@ -296,6 +296,8 @@ sensitive_scan:
       pattern: 'xox[baprs]-[A-Za-z0-9-]{10,}'
     - id: "stripe_live_key"
       pattern: 'sk_live_[A-Za-z0-9]{10,}'
+    - id: "notion_token"
+      pattern: '\b(?:ntn_[A-Za-z0-9]{40,}|secret_[A-Za-z0-9]{43})\b'
     - id: "plaintext_password_assign"
       pattern: '(?i)\b(password|passwd|pwd|secret|api[_-]?key|access[_-]?key)\b\s*[:=]\s*[''"]?[^''"\s]{6,}[''"]?'
     - id: "private_ipv4"   # 改進 F：內網 IPv4 由 soft_warn 升級為 hard_block
