@@ -71,6 +71,13 @@ obsidian:
         defaults_by_kind:
           dev_goal: true
         description: "是否允許投影到 Notion（同步前仍會被敏感掃描二次否決）"
+      confidential:
+        type: boolean
+        optional: true
+        default: false
+        # 商業/隱私敏感但非憑證類（如併購計畫、客戶名稱）——regex 抓不到，靠人工標記。
+        # 單一 flag 取代多級分類（YAGNI）：true 即強制不投影，優先於 mirror。
+        description: "機密旗標：true 一律不投影到 Notion（凌駕 mirror=true），見 sync_guardrails.block_if_confidential"
       source_date:
         type: string
         optional: true
@@ -84,7 +91,8 @@ extraction:
     callout:
       type: "progress"
       header_match: "[!progress]"   # 不分大小寫
-      attributes_allowed: [stage, date, goal, seq]
+      # source / source_ref：知識來源 Provenance（見 _docs/conventions.md §6），可選
+      attributes_allowed: [stage, date, goal, seq, source, source_ref]
       canonical:
         stage:
           allowed: [Idea, Build, Validate, Ship, Maintain]
@@ -106,7 +114,8 @@ extraction:
     callout:
       type: "lesson"
       header_match: "[!lesson]"   # 不分大小寫
-      attributes_allowed: [skill, stage, error]
+      # source / source_ref：知識來源 Provenance（見 _docs/conventions.md §6），可選
+      attributes_allowed: [skill, stage, error, source, source_ref]
       body_fields:
         preferred_keys: [what, fix, rule]
         fallback: "raw_block"
@@ -168,6 +177,7 @@ notion:
             - { field: "frontmatter.kind", equals: "dev_goal" }
             - { field: "frontmatter.status", in: ["verified", "draft"] }
             - { field: "frontmatter.mirror", equals: true }
+            - { field: "frontmatter.confidential", not_equals: true }   # 機密一律排除
         fields:
           "目標 Goal":
             from: "derived.title"
@@ -314,3 +324,5 @@ validation:
     project_if_empty: "General"
   sync_guardrails:
     require_mirror_flag: true
+    # confidential=true 一律不投影（凌駕 mirror）。km-sync 投影前必須檢查此旗標。
+    block_if_confidential: true

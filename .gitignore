@@ -20,6 +20,9 @@ notion.config.local.json
 01_Inbox/_candidates/*
 !01_Inbox/_candidates/.gitkeep
 
+# auto-promote 操作日誌（機器生成、可重建、供月檢批次掃；不入版控）
+01_Inbox/_auto-promote-log.md
+
 # Python 工具產物（tools/km_review 等）
 __pycache__/
 *.pyc

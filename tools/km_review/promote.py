@@ -25,6 +25,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from validate_candidate import validate, _parse_callouts  # noqa: E402
+import sensitive  # noqa: E402
 
 VAULT_DEFAULT = "/Users/juiyujao/Projects/knowledge-os"
 
@@ -86,11 +87,17 @@ def _callout_text(kind, header, body_lines):
 
 
 def _append_block(path, block, blank_before):
-    """append-only：在檔尾接上 block，控制是否空一行分隔。"""
-    with open(path, encoding="utf-8") as f:
-        text = f.read()
-    sep = "\n\n" if blank_before else "\n"
-    text = text.rstrip("\n") + sep + block.rstrip("\n") + "\n"
+    """append-only：在檔尾接上 block，控制是否空一行分隔。
+    檔案不存在時視為空檔自動建立（避免 ledger 等首次寫入 FileNotFoundError）。"""
+    text = ""
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    if text.strip():
+        sep = "\n\n" if blank_before else "\n"
+        text = text.rstrip("\n") + sep + block.rstrip("\n") + "\n"
+    else:
+        text = block.rstrip("\n") + "\n"
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -132,9 +139,15 @@ def _quarantine(vault, path):
     shutil.move(path, os.path.join(qdir, os.path.basename(path)))
 
 
-def promote_candidate(vault, path, dry_run=False):
+def _load_scan_rules(vault):
+    """從 vault 根目錄 data-contract.yaml 載入 hard_block 敏感掃描規則。
+    載入失敗會 raise sensitive.SensitiveContractError（大聲失敗，由 caller 接）。"""
+    return sensitive.load_hard_block(os.path.join(vault, "data-contract.yaml"))
+
+
+def promote_candidate(vault, path, dry_run=False, scan_rules=None):
     """回傳 (status, detail)。status ∈ {promoted, quarantined}。
-    原子性：任一 progress 對不到目標卡 → 整份隔離，不做部分寫入。"""
+    原子性：任一 progress 對不到目標卡、或命中敏感掃描 → 整份隔離，不做部分寫入。"""
     findings = validate(path, vault_root=vault)
     if any(f.level == "block" for f in findings):
         if not dry_run:
@@ -142,7 +155,18 @@ def promote_candidate(vault, path, dry_run=False):
         return "quarantined", f"結構驗證攔截（{len(findings)} 項）"
 
     with open(path, encoding="utf-8") as f:
-        blocks = _parse_callouts(f.read())
+        raw = f.read()
+
+    # 敏感掃描：寫入 SoT 前的 fail-fast（命中即隔離，只報規則 ID，不輸出內容）。
+    if scan_rules is None:
+        scan_rules = _load_scan_rules(vault)
+    hits = sensitive.scan(raw, *scan_rules)
+    if hits:
+        if not dry_run:
+            _quarantine(vault, path)
+        return "quarantined", "敏感掃描攔截：" + ", ".join(hits)
+
+    blocks = _parse_callouts(raw)
 
     # 先解析 + 預解析所有 progress 目標卡（原子性：先確認全部可落地）
     prog_date = _today()
@@ -226,11 +250,18 @@ def main(argv=None):
     if not files:
         return 0  # 無候選 → 靜默 no-op（hook 不輸出）
 
+    # 敏感掃描規則：載入一次。失敗即 fail-closed（不促進任何候選），大聲報錯不靜默。
+    try:
+        scan_rules = _load_scan_rules(args.vault)
+    except sensitive.SensitiveContractError as e:
+        print(f"⛔ km auto-promote 中止：敏感掃描規則載入失敗，未促進任何候選。原因：{e}")
+        return 1
+
     promoted = quarantined = 0
     stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     ledger_lines = []
     for path in files:
-        status, detail = promote_candidate(args.vault, path, args.dry_run)
+        status, detail = promote_candidate(args.vault, path, args.dry_run, scan_rules)
         promoted += status == "promoted"
         quarantined += status == "quarantined"
         ledger_lines.append(f"- {stamp} {os.path.basename(path)} → {status}（{detail}）")
