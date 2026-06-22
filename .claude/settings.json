@@ -1,5 +1,15 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); sid=$(printf '%s' \"$input\" | jq -r '.session_id // empty' | cut -c1-8); msg=$(printf '%s' \"$input\" | jq -r '.prompt // .message // \"\"'); [ -n \"$sid\" ] && printf '%s' \"$msg\" | grep -qE '離開|下班|結束|掰|關掉|關閉|收工|bye|goodbye|要走了|離場|要離開' && touch \"/tmp/km-wrap-ready-$sid\""
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [

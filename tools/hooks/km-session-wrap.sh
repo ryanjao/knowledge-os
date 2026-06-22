@@ -28,9 +28,10 @@ today=$(date +%F)
 candir="$VAULT/01_Inbox/_candidates"
 candidate="$candir/${today}--${project}--${sid8}.md"
 
-# sentinel：每個 session 只 block 一次（mkdir atomic，防並發 race condition）
-sentinel_dir="/tmp/km-wrap-asked-${sid8}"
-mkdir "$sentinel_dir" 2>/dev/null || exit 0
+# 只在使用者發出離場信號後才觸發（ready flag 由 UserPromptSubmit hook 設置）
+ready_flag="/tmp/km-wrap-ready-${sid8}"
+[ -f "$ready_flag" ] || exit 0
+rm -f "$ready_flag"
 
 # 候選已存在 → 不重複 block
 [ -f "$candidate" ] && exit 0
