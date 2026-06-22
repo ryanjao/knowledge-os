@@ -162,3 +162,33 @@ mirror: false
 > what: binary `mirror: true/false` 無法分類商業資訊（如併購計畫、客戶名稱）——這類資料不是密碼，regex 抓不到，但同樣不該同步。
 > fix: 加單一 `confidential: true` flag（優先於 mirror 設定），凡帶此 flag 的筆記預設禁止同步，不需四層分級制度。
 > rule: 敏感程度分級先從最小可行開始（confidential boolean），待實際使用再評估是否需要更細粒度。
+
+> [!lesson] skill=python stage=Build error=yaml-inline-comment source=experiment
+> what: 自寫的極小 YAML scalar 解析器（_unquote）對 `id: "private_ipv4"   # 改進 F…` 這類「閉合引號後接行內註解」回傳整串含註解，導致規則 id 變成 `"private_ipv4"   # …`，掃描規則靜默失效。
+> fix: 把 _unquote 從「檢查首尾字元是否同引號」改成「逐字掃描到閉合引號為止（含 '' / \" escape），其後一律忽略」；plain scalar 則去掉「空白+#」之後的註解。TDD 測試（test_real_contract_loads_known_ids）當場抓到。
+> rule: 手寫格式解析器，務必用「真實檔案」當測試 fixture——合成的乾淨樣本會漏掉行內註解這類真實雜訊；解析失敗要大聲（空規則=false security），不可靜默回傳空。
+
+> [!lesson] skill=python stage=Build error=missing-file-append source=experiment
+> what: _append_block 先以讀取模式開檔再 append，ledger（_auto-promote-log.md）首次不存在時拋 FileNotFoundError，每次 SessionStart 促進都在 traceback。
+> fix: append 前先 os.path.exists 判斷，不存在視為空檔；空檔直接寫 block（不加前置分隔換行）。
+> rule: append-only 寫入器必須涵蓋「目標檔尚不存在」的首次路徑——這屬不可簡化的錯誤處理，不是邊角案例。
+
+> [!lesson] skill=bash stage=Build error=sandbox-cd-denied source=experiment
+> what: 想用 mktemp + git init 在臨時目錄測 Pre-flight 漂移分支，但沙箱拒絕（cd / git init 到工作目錄外被擋）。
+> fix: 改在真 repo 內用「已知未忽略路徑（README.md）vs 已忽略路徑（secrets.env）」驗證迴圈邏輯，純讀 git 操作即可證明 guard_breach 填值正確，免建新 repo。
+> rule: 驗證 shell 分支邏輯時，優先用現有 repo 的已知狀態當對照組，比重建隔離環境更省、且不觸發沙箱限制。
+
+> [!lesson] skill=km-review stage=Ship error=scan-blindspot-own-credential source=experiment
+> what: 處理憑證的元件，敏感掃描清單卻不含「自己那把憑證」的格式——km-sync 整天捧著 Notion token，hard_block 卻沒有 ntn_/secret_ 規則，token 若誤入筆記會被原樣投影上 Notion。
+> fix: 在 data-contract.yaml hard_block 補 notion_token 規則（單一規則來源，兩個 consumer 自動生效）。
+> rule: 凡 handle 某類憑證的工具，敏感掃描清單必須優先涵蓋「該工具自己經手的憑證格式」。
+
+> [!lesson] skill=superpowers stage=Build error=regex-word-boundary-underscore source=experiment
+> what: 誤以為既有 plaintext_password_assign 會擋到 Notion token，實際漏接——底線是 word char，word-boundary 在 secret 接底線處不成立，整條 password 規則不匹配；raw token 字面值（無冒號或等號）無人攔。
+> fix: 為 raw 字面值寫獨立 regex（ntn_ 40+ 碼 / secret_ 43 碼），並加「散文 secret 不誤殺」測試確認不過貪婪。
+> rule: 別假設既有 password 規則涵蓋 raw token 字面值；word-boundary 對含底線的字首會失效，raw 憑證要各自立規則並測 false-positive。
+
+> [!lesson] skill=code-review stage=Ship error=referenced-file-not-committed source=experiment
+> what: cli.py 找不到設定時提示「請從 notion.config.example.json 複製」，但該範例檔從未 commit，fresh clone 照指示會撲空。
+> fix: 補 notion.config.example.json（placeholder 含 PASTE_ 觸發既有防呆），鍵與程式碼對齊。
+> rule: 程式或錯誤訊息引用的範本檔必須與程式一起進版控；用 grep 程式裡的檔名引用對照 git ls-files 可揪出這類斷鏈。

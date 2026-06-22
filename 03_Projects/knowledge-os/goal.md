@@ -87,3 +87,13 @@ source_date: 2026-06-03
 > did: 完成 knowledge-os 全專案資訊安全審核，列出六層防禦清單（物理隔離、token 化規範、敏感掃描、投影 opt-in、Human-in-the-Loop、思維風格保護）；評估三份外部安全改善建議（共六條具體提案）；排出實作優先順序
 > result: 決策——採納 Provenance 追蹤（callout 加 source= 欄位）、Pre-flight 環境完整性校驗（SessionStart hook 加 git check-ignore）、confidential flag（single flag 替代四級分類）；暫緩 security_bypass 白名單（待偽陽性頻率確認）；不採納 CI/PR 安全閘（overkill for 單人 PKM）；識別出三份建議都未捕捉的關鍵缺口：promote.py 中間層無敏感掃描，敏感內容可能寫入 SoT 再才被 km-sync 攔截
 > next: 依優先順序實作：① promote.py 補敏感掃描 ② conventions.md 加 source= 規範 ③ hook 加 Pre-flight 完整性校驗 ④ data-contract.yaml 加 confidential flag ⑤ conventions.md 加 token 輪替政策
+
+> [!progress] stage=Build date=2026-06-20 goal=01KKMOSSELFGOAL0001 seq=01 source=experiment
+> did: 依序實作 5 項安全強化——① promote.py 補敏感掃描（新 sensitive.py 讀 data-contract.yaml §6 hard_block，寫 SoT 前 fail-fast，命中隔離）② conventions.md §6 定義 Provenance source= 規範 + 契約 attributes_allowed 同步 ③ km-auto-promote.sh 加 Pre-flight git check-ignore 漂移偵測（鎖同步+警告）④ data-contract.yaml 加 confidential 單一 flag（取代四級分類）⑤ conventions.md §5 加金鑰治理（輪替/最小權限/撤銷）。順手修 promote.py _append_block ledger 的 FileNotFoundError。
+> result: 33 測試全綠（新增 test_sensitive 13 + test_promote 3）；hook bash 語法 OK、YAML 合法；漂移偵測三情境驗證通過。識別兩項跨界待辦：confidential 強制點在 km-sync（另一 repo）；ledger 是否納 .gitignore 待決。
+> next: 依使用者決定 commit；評估 confidential 在 km-sync 的閉環、ledger gitignore 處理。
+
+> [!progress] stage=Ship date=2026-06-20 goal=01KKMOSSELFGOAL0001 seq=01 source=experiment
+> did: 對 km-sync（public repo、握 Notion token、對外推送）做結構化安全審核，涵蓋隔離邊界 / token 處理 / sanitize 規則完整性 / 硬編路徑憑證 / .claudeignore 五面，並修掉發現的 P1、P2。
+> result: 底子乾淨——零硬編憑證、token 不進 log/export、tracked files 無洩漏。P1：data-contract.yaml 新增 notion_token hard_block，promote.py（stdlib 解析）與 km-sync（PyYAML）一處改兩處生效，TDD knowledge-os 37 綠 / km-sync 106 綠，real-contract 端對端驗證攔得到 token。P2：補 notion.config.example.json 修 onboarding 斷鏈。均 commit+push（knowledge-os b94aa5e / km-sync dcddebd）。
+> next: P3（km-sync .claudeignore）依 YAGNI 明確跳過——真祕密在 vault 且已有 .claudeignore，km-sync repo 不持有祕密。Phase 4 其餘收尾（正式 code-review、/ponytail-review、Pre-flight bash/e2e 測試）仍待補。

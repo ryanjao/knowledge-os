@@ -40,3 +40,9 @@ mirror: false
 - 2026-06-08 — stage=Build skill=brainstorming error=vague-visual-feedback-loop — 主觀視覺回饋要並排實際渲染、隔離單一變項來收斂，而非靠文字描述猜測
 - 2026-06-20 — stage=Build skill=security error=pipeline-scan-gap — 敏感掃描必須在每一個「寫入 SoT 前」的節點觸發，不只在「同步外部服務前」。
 - 2026-06-20 — stage=Build skill=security error=classification-design — 敏感程度分級先從最小可行開始（confidential boolean），待實際使用再評估是否需要更細粒度。
+- 2026-06-20 — stage=Build skill=python error=yaml-inline-comment — 手寫格式解析器，務必用「真實檔案」當測試 fixture——合成的乾淨樣本會漏掉行內註解這類真實雜訊；解析失敗要大聲（空規則=false security），不可靜默回傳空。
+- 2026-06-20 — stage=Build skill=python error=missing-file-append — append-only 寫入器必須涵蓋「目標檔尚不存在」的首次路徑——這屬不可簡化的錯誤處理，不是邊角案例。
+- 2026-06-20 — stage=Build skill=bash error=sandbox-cd-denied — 驗證 shell 分支邏輯時，優先用現有 repo 的已知狀態當對照組，比重建隔離環境更省、且不觸發沙箱限制。
+- 2026-06-20 — stage=Ship skill=km-review error=scan-blindspot-own-credential — 凡 handle 某類憑證的工具，敏感掃描清單必須優先涵蓋「該工具自己經手的憑證格式」。
+- 2026-06-20 — stage=Build skill=superpowers error=regex-word-boundary-underscore — 別假設既有 password 規則涵蓋 raw token 字面值；word-boundary 對含底線的字首會失效，raw 憑證要各自立規則並測 false-positive。
+- 2026-06-20 — stage=Ship skill=code-review error=referenced-file-not-committed — 程式或錯誤訊息引用的範本檔必須與程式一起進版控；用 grep 程式裡的檔名引用對照 git ls-files 可揪出這類斷鏈。
