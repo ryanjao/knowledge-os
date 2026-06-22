@@ -146,8 +146,10 @@ def _load_scan_rules(vault):
 
 
 def promote_candidate(vault, path, dry_run=False, scan_rules=None):
-    """回傳 (status, detail)。status ∈ {promoted, quarantined}。
+    """回傳 (status, detail)。status ∈ {promoted, quarantined, skipped}。
     原子性：任一 progress 對不到目標卡、或命中敏感掃描 → 整份隔離，不做部分寫入。"""
+    if not os.path.exists(path):
+        return "skipped", "檔案已不存在（可能已被前次 run 處理）"
     findings = validate(path, vault_root=vault)
     if any(f.level == "block" for f in findings):
         if not dry_run:
@@ -262,6 +264,8 @@ def main(argv=None):
     ledger_lines = []
     for path in files:
         status, detail = promote_candidate(args.vault, path, args.dry_run, scan_rules)
+        if status == "skipped":
+            continue
         promoted += status == "promoted"
         quarantined += status == "quarantined"
         ledger_lines.append(f"- {stamp} {os.path.basename(path)} → {status}（{detail}）")
