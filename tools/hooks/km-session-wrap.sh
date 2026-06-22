@@ -28,6 +28,11 @@ today=$(date +%F)
 candir="$VAULT/01_Inbox/_candidates"
 candidate="$candir/${today}--${project}--${sid8}.md"
 
+# sentinel：每個 session 只 block 一次（Stop 在每一輪回應後都觸發，不只 session 結束）
+sentinel="/tmp/km-wrap-asked-${sid8}"
+[ -f "$sentinel" ] && exit 0
+touch "$sentinel"
+
 # 候選已存在 → 不重複 block
 [ -f "$candidate" ] && exit 0
 
